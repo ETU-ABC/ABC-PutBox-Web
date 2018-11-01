@@ -1,5 +1,6 @@
 bil495-abc.db
 bil495-abc.db-journal
+./idea
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
