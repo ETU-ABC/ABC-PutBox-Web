@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, json
+from flask import Flask, render_template, request, json, g
 import sqlite3 as sql
 
 from flask_classful import FlaskView, route
@@ -42,8 +42,22 @@ def album():
         rows = query_db('select * from album')
         return app.response_class(json.jsonify(rows), status=200)
 
-    elif request.method =="PUT"
+    elif request.method =="PUT":
         query_db('INSERT INTO ALBUM (name, owner, first_photo)  VALUES(%s, %s, %s)')
+
+
+@app.route('/photos/<photo_id>', methods=['GET', 'PUT'])
+def retrieve_photos(photo_id):
+    if request.method == 'GET':
+        data = query_db('SELECT * FROM photo WHERE photo_id = ?', [photo_id])
+        return json.jsonify(data)
+    if request.method =='PUT':
+        data = request.json
+        for tag in data['tag']:
+            # query_db('INSERT INTO PHOTO_TAGS (photo_id, tag) VALUES (?, ?)', photo_id, tag)
+            print(tag)
+        return "put method test"
+
 
 if __name__ == '__main__':
     app.run(debug=False)
