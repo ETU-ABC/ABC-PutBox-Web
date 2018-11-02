@@ -183,6 +183,20 @@ def photo_delete(id):
 
     return photo_schema.jsonify(photo)
 
+### ALBUM
+# endpoint to create new album
+@app.route("/album", methods=["POST"])
+def add_album():
+    album_name = request.json['album_name']
+    # TODO - Update after authorization
+    owner = 1
+    new_album = Album(album_name, owner)
+
+    db.session.add(new_album)
+    db.session.commit()
+
+    return album_schema.jsonify(new_album)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
