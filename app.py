@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Table, Column, Integer, ForeignKey
 from sqlalchemy.orm import relationship
 from flask_marshmallow import Marshmallow
 import os
@@ -42,9 +41,9 @@ class Photo(db.Model):
     photo_id = db.Column(db.Integer, primary_key=True)
     photo_path = db.Column(db.String(150), unique=True)
     upload_date = db.Column(db.DateTime)
-    uploaded_by = db.Column(Integer, ForeignKey('user.user_id'))
+    uploaded_by = db.Column(db.Integer, db.ForeignKey('user.user_id'))
     tags = relationship("Tag")
-    album_id = db.Column(Integer, ForeignKey('album.album_id'))
+    album_id = db.Column(db.Integer, db.ForeignKey('album.album_id'))
 
     def __init__(self, photo_path, uploaded_by):
         self.photo_path = photo_path
@@ -65,7 +64,7 @@ photos_schema = PhotoSchema(many=True)
 
 class Tag(db.Model):
     tag_id = db.Column(db.Integer, primary_key=True)
-    photo_id = db.Column(Integer, ForeignKey('photo.photo_id'))
+    photo_id = db.Column(db.Integer, db.ForeignKey('photo.photo_id'))
     tag_desc = db.Column(db.String(50))
 
     def __init__(self, photo_id, tag_desc):
@@ -85,7 +84,7 @@ tags_schema = TagSchema(many=True)
 class Album(db.Model):
     album_id = db.Column(db.Integer, primary_key=True)
     album_name = db.Column(db.String(30), unique=True)
-    owner = db.Column(Integer, ForeignKey('user.user_id'))
+    owner = db.Column(db.Integer, db.ForeignKey('user.user_id'))
     # TODO album cover is set to first photo in the album
     # cover = db.Column(Integer, ForeignKey('photo.photo_id'))
     photos = relationship("Photo")
