@@ -152,6 +152,27 @@ def get_photo():
     return photos_schema.jsonify(result.data)
 
 
+# endpoint to get photo detail by id
+@app.route("/photo/<id>", methods=["GET"])
+def photo_detail(id):
+    photo = Photo.query.get(id)
+    return photo_schema.jsonify(photo)
+
+
+# endpoint to update photo
+@app.route("/photo/<id>", methods=["PUT"])
+def photo_update(id):
+    tags = request.json['tags']
+    for tag in tags:
+        # TODO check if tag is already exists for that photo
+        tab_obj = Tag(id, tag)
+        db.session.add(tab_obj)
+
+    db.session.commit()
+
+    photo = Photo.query.get(id)
+    return photo_schema.jsonify(photo)
+
+
 if __name__ == '__main__':
     app.run(debug=True)
-    
