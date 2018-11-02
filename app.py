@@ -28,7 +28,7 @@ def query_db(query, args=(), one=False):
     cur.close()
     return (rv[0] if rv else None) if one else rv
 
-
+#-------------------------------------------------------------ALBUM------------------------------------------------------------------------------
 @app.route('/albums', methods=["GET","PUT"])
 def album():
 
@@ -44,7 +44,36 @@ def album():
         get_db().commit()
         return app.response_class("Inserted\n", status=200)
 
+@app.route('/albums/<album_id>', methods=["GET","PUT","POST","DELETE"])
+def album_id(album_id):
+    if request.method == 'GET':
+        cur = get_db().execute("SELECT Photo_id FROM ALBUM_PHOTO WHERE album_id=?",(album_id))
+        data = cur.fetchall()
+        return app.response_class(json.dumps(data), status=200)
 
+
+    if request.method == 'PUT':
+        data = request.json
+        cursor=get_db().execute("INSERT INTO PHOTO(photo_path, upload_date, uploaded_by) VALUES(?,?,?)",
+                         (data["photo_path"], data["upload_date"], data["uploaded_by"]))
+        photo_id = cursor.lastrowid
+        get_db().commit()
+        print("Photo Inserted into PHOTO table\n")
+        cursor=get_db().execute("INSERT INTO ALBUM_PHOTOS(album_id, photo_id) VALUES(?,?)",
+                         (album_id, photo_id))
+
+        get_db().commit()
+        print("Photo Inserted into ALBUM_PHOTOS table\n")
+
+
+    if request.method == 'POST':
+        print("")
+
+    if request.method == 'DELETE':
+        print("")
+
+
+#-------------------------------------------------------------PHOTO------------------------------------------------------------------------------
 @app.route('/photos/<photo_id>', methods=['GET', 'PUT'])
 def retrieve_photos(photo_id):
 
@@ -53,10 +82,11 @@ def retrieve_photos(photo_id):
         return app.response_class(json.dumps(data), status=200)
 
     elif request.method =='PUT':
-        #data = request.json
-        #get_db().execute("INSERT INTO PHOTO(name, owner, first_photo) VALUES(?,?,?)",(data["photo_path"], data["upload_date"], data["first_photo"]))
-        #get_db().commit()
-        return app.response_class("Inserted\n", status=200)
+        data = request.json
+        cursor=get_db().execute("INSERT INTO PHOTO(photo_path, upload_date, ) VALUES(?,?,?)",
+                         (data["photo_path"], data["upload_date"], data["uploaded_by"]))
+        get_db().commit()
+        return app.response_class("Photo Inserted into PHOTO table\n", status=200)
 
 
 if __name__ == '__main__':

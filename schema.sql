@@ -17,7 +17,8 @@ FOREIGN KEY (uploaded_by) REFERENCES USER(user_id));
 CREATE TABLE ALBUM
 (album_id INTEGER NOT NULL,
 name VARCHAR(25),
-owner VARCHAR(25), first_photo VARCHAR(80),
+owner VARCHAR(25),
+first_photo VARCHAR(80),
 PRIMARY KEY (album_id),
 FOREIGN KEY (owner) REFERENCES USER(user_id));
 
