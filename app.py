@@ -76,7 +76,6 @@ class Tag(db.Model):
 class TagSchema(ma.Schema):
     class Meta:
         fields = ('photo_id', 'tag_desc')
-        # only = 'tag_desc'
 
 
 tag_schema = TagSchema()
@@ -183,6 +182,15 @@ def photo_delete(id):
 
     return photo_schema.jsonify(photo)
 
+
+# endpoint to search tags
+@app.route("/tag/<tag>", methods=["GET"])
+def search_tag(tag):
+    photos_with_tag = Photo.query.filter(Photo.tags.any(Tag.tag_desc == tag))
+
+    return photos_schema.jsonify(photos_with_tag)
+
+
 ### ALBUM
 # endpoint to create new album
 @app.route("/album", methods=["POST"])
@@ -224,6 +232,7 @@ def album_update(id):
     db.session.commit()
     return album_schema.jsonify(album)
 
+
 # endpoint to delete album
 @app.route("/album/<id>", methods=["DELETE"])
 def album_delete(id):
@@ -232,6 +241,7 @@ def album_delete(id):
     db.session.commit()
 
     return album_schema.jsonify(album)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
