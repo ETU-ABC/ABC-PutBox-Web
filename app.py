@@ -174,5 +174,15 @@ def photo_update(id):
     return photo_schema.jsonify(photo)
 
 
+# endpoint to delete photo
+@app.route("/photo/<id>", methods=["DELETE"])
+def photo_delete(id):
+    photo = Photo.query.get(id)
+    db.session.delete(photo)
+    db.session.commit()
+
+    return photo_schema.jsonify(photo)
+
+
 if __name__ == '__main__':
     app.run(debug=True)
