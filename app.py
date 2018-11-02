@@ -12,6 +12,7 @@ def get_db():
     db = getattr(g, '_database', None)
     if db is None:
         db = g._database = sql.connect(DATABASE)
+        db.row_factory = dict_factory
     return db
 
 
@@ -28,7 +29,17 @@ def query_db(query, args=(), one=False):
     cur.close()
     return (rv[0] if rv else None) if one else rv
 
-#-------------------------------------------------------------ALBUM------------------------------------------------------------------------------
+
+def dict_factory(cursor, row):
+    d = {}
+    for idx, col in enumerate(cursor.description):
+        d[col[0]] = row[idx]
+    return d
+
+
+#----ALBUM----
+
+
 @app.route('/albums', methods=["GET","PUT"])
 def album():
 
@@ -43,6 +54,7 @@ def album():
         get_db().execute("INSERT INTO ALBUM(name, owner, first_photo) VALUES(?,?,?)",(data["name"], data["owner"], data["first_photo"]))
         get_db().commit()
         return app.response_class("Inserted\n", status=200)
+
 
 @app.route('/albums/<album_id>', methods=["GET","PUT","POST","DELETE"])
 def album_id(album_id):
