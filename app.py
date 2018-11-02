@@ -224,5 +224,14 @@ def album_update(id):
     db.session.commit()
     return album_schema.jsonify(album)
 
+# endpoint to delete album
+@app.route("/album/<id>", methods=["DELETE"])
+def album_delete(id):
+    album = Album.query.get(id)
+    db.session.delete(album)
+    db.session.commit()
+
+    return album_schema.jsonify(album)
+
 if __name__ == '__main__':
     app.run(debug=True)
