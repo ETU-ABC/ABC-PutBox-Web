@@ -198,5 +198,31 @@ def add_album():
     return album_schema.jsonify(new_album)
 
 
+# endpoint to show all albums
+@app.route("/album", methods=["GET"])
+def get_album():
+    all_albums = Album.query.all()
+    result = albums_schema.dump(all_albums)
+    return albums_schema.jsonify(result.data)
+
+
+# endpoint to get album detail by id
+@app.route("/album/<id>", methods=["GET"])
+def album_detail(id):
+    album = Album.query.get(id)
+    return album_schema.jsonify(album)
+
+
+# endpoint to update album
+@app.route("/album/<id>", methods=["PUT"])
+def album_update(id):
+    album = Album.query.get(id)
+    album_name = request.json['album_name']
+
+    album.album_name = album_name
+
+    db.session.commit()
+    return album_schema.jsonify(album)
+
 if __name__ == '__main__':
     app.run(debug=True)
