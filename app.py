@@ -129,6 +129,29 @@ def get_user():
     return jsonify(result.data)
 
 
+# endpoint to insert new photo
+@app.route("/photo", methods=["POST"])
+def add_photo():
+    photo_path = request.json['photo_path']
+    # TODO update after user authentication
+    uploaded_by = 1
+
+    new_photo = Photo(photo_path, uploaded_by)
+
+    db.session.add(new_photo)
+    db.session.commit()
+
+    return photo_schema.jsonify(new_photo)
+
+
+# endpoint to show all photos
+@app.route("/photo", methods=["GET"])
+def get_photo():
+    all_photos = Photo.query.all()
+    result = photos_schema.dump(all_photos)
+    return photos_schema.jsonify(result.data)
+
+
 if __name__ == '__main__':
     app.run(debug=True)
     
