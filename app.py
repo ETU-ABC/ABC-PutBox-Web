@@ -59,7 +59,7 @@ def album():
 @app.route('/albums/<album_id>', methods=["GET","PUT","POST","DELETE"])
 def album_id(album_id):
     if request.method == 'GET':
-        cur = get_db().execute("SELECT Photo_id FROM ALBUM_PHOTO WHERE album_id=?",(album_id))
+        cur = get_db().execute("SELECT Photo_id FROM ALBUM_PHOTOS WHERE album_id=?",(album_id))
         data = cur.fetchall()
         return app.response_class(json.dumps(data), status=200)
 
