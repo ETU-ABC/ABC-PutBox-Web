@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template, redirect
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
 from flask_marshmallow import Marshmallow
@@ -103,19 +103,32 @@ class AlbumSchema(ma.Schema):
 album_schema = AlbumSchema()
 albums_schema = AlbumSchema(many=True)
 
+@app.route("/")
+def check_login():
+    token=request.cookies.get('token')
+    username=request.cookies.get('username')
+    #check if this token is valid for this user
 
+    #if valid then user is already authenticated,
+    #return redirect("MainPage", code=302)  undo comment out when token check is implemented
+    #else redirect to login page
+    return redirect("login", code=302)
+
+@app.route("/login", methods=["GET"])
+def getLoginPage():
+    return render_template("Login.html");
 # endpoint to create new user
 @app.route("/user", methods=["POST"])
 def add_user():
-    username = request.json['username']
-    email = request.json['email']
-    password = request.json['password']
-
+    data= request.form.to_dict()
+    username= data['username']
+    print(username);
+    email = data['email']
+    password = data['password']
     new_user = User(username, email, password)
 
     db.session.add(new_user)
     db.session.commit()
-
     return user_schema.jsonify(new_user)
 
 
