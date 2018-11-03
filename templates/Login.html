@@ -23,52 +23,42 @@
         <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
         <label for="username" class="sr-only">Username</label>
         <input type="text" name="username" class="form-control" placeholder="Username" required autofocus>
-        <label for="email" class="sr-only">Email address</label>
-        <input type="email" name="email" class="form-control" placeholder="Email address" required autofocus>
         <label for="password" class="sr-only">Password</label>
         <input type="password" name="password" class="form-control" placeholder="Password" required>
-        <div class="checkbox mb-3">
-          <label>
-            <input type="checkbox" value="remember-me"> Remember me
-          </label>
-        </div>
         <input class="btn btn-lg btn-primary btn-block" type="submit" name="submit" value="Sign In">
-        <a href="Register.html" class="btn btn-secondary btn-lg btn-block active" role="button" aria-pressed="true">Not an user, sign up!</a>
+        <a href="register" class="btn btn-secondary btn-lg btn-block active" role="button" aria-pressed="true">Not an user, sign up!</a>
       </form>
 
     </div>
 
     <script>
-    function objectifyForm(dataString) {//serialize data function
-      var params = dataString.split("&");
-      var obj = {};
-      for (var i in params) {
-      var keys = params[i].split("=");
-      obj[keys[0]] = keys[1];
+      function objectifyForm(dataString) {//serialize data function
+        var params = dataString.split("&");
+        var obj = {};
+        for (var i in params) {
+        var keys = params[i].split("=");
+        obj[keys[0]] = keys[1];
+        }
+        return obj;
       }
-      return obj;
-    }
-    $(document).ready(function(){
-        $("#form").on('submit', function(e){
-          e.preventDefault();
-            var json = objectifyForm($("#form").serialize());
-            $.ajax({
-                url: '../user', // url where to submit the request
-                type : "POST", // type of action POST || GET
-                dataType : 'json', // data type
-                data : json, // post data || get data
-                success : function(result) {
-                    //console.log(result);
-                    window.location.assign("/MainPage");
-                },
-                error: function(xhr, resp, text) {
-                    //console.log(xhr, resp, text);
-                }
-            })
-        });
-    });
-</script>
-
-
+      $(document).ready(function(){
+          $("#form").on('submit', function(e){
+            e.preventDefault();
+              var json = objectifyForm($("#form").serialize());
+              $.ajax({
+                  url: '../login', // url where to submit the request
+                  type : "POST", // type of action POST || GET
+                  dataType : 'json', // data type
+                  data : json, // post data || get data
+                  success : function(result) {
+                      window.location.assign("/MainPage");
+                  },
+                  error: function(xhr, resp, text) {
+                      alert("Login failed, wrong user credentials");
+                  }
+              })
+          });
+      });
+    </script>
   </body>
 </html>

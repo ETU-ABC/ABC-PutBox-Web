@@ -113,16 +113,21 @@ def check_login():
     #return redirect("MainPage", code=302)  undo comment out when token check is implemented
     #else redirect to login page
     return redirect("login", code=302)
+# endpoint to user registeration
+@app.route("/register", methods=["GET"])
+def getRegisterPage():
+    return render_template("Register.html");
 
+# endpoint to user login
 @app.route("/login", methods=["GET"])
 def getLoginPage():
     return render_template("Login.html");
+
 # endpoint to create new user
 @app.route("/user", methods=["POST"])
 def add_user():
     data= request.form.to_dict()
     username= data['username']
-    print(username);
     email = data['email']
     password = data['password']
     new_user = User(username, email, password)
