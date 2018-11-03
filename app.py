@@ -211,8 +211,7 @@ def get_user():
 @token_required
 def add_photo(currentuser):
     photo_path = request.json['photo_path']
-    # TODO update after user authentication
-    uploaded_by = currentuser.username
+    uploaded_by = currentuser.user_id
 
     new_photo = Photo(photo_path, uploaded_by)
 
@@ -276,8 +275,7 @@ def search_tag(tag):
 @token_required
 def add_album(currentuser):
     album_name = request.json['album_name']
-    # TODO - Update after authorization
-    owner = currentuser.username
+    owner = currentuser.user_id
     new_album = Album(album_name, owner)
 
     db.session.add(new_album)
