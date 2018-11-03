@@ -150,7 +150,8 @@ def login():
 
     if check_password_hash(user.password, auth.password):
         token = jwt.encode({'userid' : user.user_id}, app.config['SECRET_KEY'])
-
+        #response= make_response(redirect("MainPage.html"))
+        #response.set_cookie('')
         return jsonify({'token' : token.decode('UTF-8')})
 
     return make_response('Could not verify', 401, {'WWW-Authenticate' : 'Basic realm="Login required!"'})
@@ -189,8 +190,8 @@ def add_user():
     username= data['username']
     email = data['email']
     password = data['password']
-    generate_password_hash(password, method='sha256')
-    new_user = User(username, email, generate_password_hash)
+    hashed_password=generate_password_hash(password, method='sha256')
+    new_user = User(username, email, hashed_password)
 
 
     db.session.add(new_user)
