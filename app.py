@@ -189,7 +189,9 @@ def add_user():
     username= data['username']
     email = data['email']
     password = data['password']
-    new_user = User(username, email, password)
+    generate_password_hash(password, method='sha256')
+    new_user = User(username, email, generate_password_hash)
+
 
     db.session.add(new_user)
     db.session.commit()
