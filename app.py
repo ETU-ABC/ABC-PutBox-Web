@@ -149,11 +149,16 @@ def login():
 
     if check_password_hash(user.password, auth.password):
         token = jwt.encode({'userid' : user.user_id}, app.config['SECRET_KEY'])
-        #response= make_response(redirect("MainPage.html"))
-        #response.set_cookie('')
-        return jsonify({'token' : token.decode('UTF-8')})
+        response= make_response(redirect("/redirect"))
+        response.set_cookie('token',token)
+        return response
 
     return make_response('Could not verify', 401, {'WWW-Authenticate' : 'Basic realm="Login required!"'})
+
+@app.route('/redirect', methods=['GET'])
+def redirect():
+    return render_template("MainPage.html");
+
 
 
 @app.route('/userinfo', methods=['GET'])
