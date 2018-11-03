@@ -1,13 +1,20 @@
-from flask import Flask, request, jsonify, render_template, redirect
+from flask import Flask, request, jsonify, render_template, redirect, make_response
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
 from flask_marshmallow import Marshmallow
 import os
 import datetime
+import jwt
+import json
+from functools import wraps
+from werkzeug.security import generate_password_hash, check_password_hash
+import secrets
+
 
 app = Flask(__name__)
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'bil495-abc.sqlite')
+app.config['SECRET_KEY'] = secrets.token_hex()
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
 
@@ -102,6 +109,59 @@ class AlbumSchema(ma.Schema):
 
 album_schema = AlbumSchema()
 albums_schema = AlbumSchema(many=True)
+#------AUTH------
+
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+
+        if 'x-access-token' in request.headers:
+            token = request.headers['x-access-token']
+
+        if not token:
+            return jsonify({'message' : 'Token is missing!'}), 401
+
+        try:
+            data = jwt.decode(token, app.config['SECRET_KEY'])
+            current_user = User.query.filter_by(user_id=data['userid']).first()
+        except:
+            return jsonify({'message' : 'Token is invalid!'}), 401
+
+        return f(current_user, *args, **kwargs)
+
+    return decorated
+
+#------LOGIN------
+def myconverter(o):
+    if isinstance(o, datetime.datetime):
+        return o.__str__()
+
+
+@app.route('/login', methods=["POST"])
+def login():
+    auth = request.authorization
+    if not auth or not auth.username or not auth.password:
+        return make_response('Could not verify', 401, {'WWW-Authenticate' : 'Basic realm="Login required!"'})
+
+    user = User.query.filter_by(username=auth.username).first()
+    print("\n",user.password," - ",user.username)
+    if not user:
+        return make_response('Could not verify', 401, {'WWW-Authenticate' : 'Basic realm="Login required!"'})
+
+    if check_password_hash(user.password, auth.password):
+        token = jwt.encode({'userid' : user.user_id}, app.config['SECRET_KEY'])
+
+        return jsonify({'token' : token.decode('UTF-8')})
+
+    return make_response('Could not verify', 401, {'WWW-Authenticate' : 'Basic realm="Login required!"'})
+
+
+@app.route('/userinfo', methods=['GET'])
+@token_required
+def get_userinfo(current_user):
+    return user_schema.jsonify(current_user)
+
 
 @app.route("/")
 def check_login():
