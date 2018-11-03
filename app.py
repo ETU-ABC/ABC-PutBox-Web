@@ -248,10 +248,22 @@ def photo_detail(id):
 @app.route("/photo/<id>", methods=["PUT"])
 def photo_update(id):
     tags = request.json['tags']
+
+    # check if tag is already exists for that photo
     for tag in tags:
-        # TODO check if tag is already exists for that photo
-        tab_obj = Tag(id, tag)
-        db.session.add(tab_obj)
+        # get all the photos with the tag
+        res = Photo.query.filter(Photo.tags.any(Tag.tag_desc == tag)).all()
+        # if there is no photo with the tag, add new tag assc with photo
+        if not res:
+            tab_obj = Tag(id, tag)
+            db.session.add(tab_obj)
+
+        # if there are photos with the tag, check if photo <id> has that tag
+        else:
+            for photo in res:
+                if photo.photo_id != int(id):
+                    tab_obj = Tag(id, tag)
+                    db.session.add(tab_obj)
 
     db.session.commit()
 
