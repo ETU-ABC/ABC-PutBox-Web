@@ -107,8 +107,9 @@ class AlbumSchema(ma.Schema):
 
 album_schema = AlbumSchema()
 albums_schema = AlbumSchema(many=True)
-#------AUTH------
 
+
+#------AUTH------
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -120,40 +121,55 @@ def token_required(f):
         if not token:
             return jsonify({'message' : 'Token is missing!'}), 401
 
-        try:
-            data = jwt.decode(token, app.config['SECRET_KEY'])
-            current_user = User.query.filter_by(user_id=data['userid']).first()
-        except:
-            return jsonify({'message' : 'Token is invalid!'}), 401
+        current_user = validate_token(token)
+        if current_user is None:
+            return jsonify({'message': 'Token is invalid!'}), 401
 
         return f(current_user, *args, **kwargs)
 
     return decorated
 
 
+# validate if token is signatured and correct
+def validate_token(token):
+    try:
+        data = jwt.decode(token, app.config['SECRET_KEY'])
+        current_user = User.query.filter_by(user_id=data['userid']).first()
+        return current_user
+    except:
+        return None
+
+
 @app.route('/login', methods=["POST"])
 def login():
-    auth = request.authorization
-    if not auth or not auth.username or not auth.password:
+    data = request.form.to_dict()
+    username = data['username']
+    password = data['password']
+    if not username or not password:
         return make_response('Could not verify', 401, {'WWW-Authenticate' : 'Basic realm="Login required!"'})
 
-    user = User.query.filter_by(username=auth.username).first()
+    user = User.query.filter_by(username=username).first()
     print("\n",user.password," - ",user.username)
     if not user:
         return make_response('Could not verify', 401, {'WWW-Authenticate' : 'Basic realm="Login required!"'})
 
-    if check_password_hash(user.password, auth.password):
+    if check_password_hash(user.password, password):
         token = jwt.encode({'userid' : user.user_id}, app.config['SECRET_KEY'])
         response = make_response(redirect("/"))
         response.set_cookie('token', token)
         return response
-
     return make_response('Could not verify', 401, {'WWW-Authenticate' : 'Basic realm="Login required!"'})
 
 
 @app.route('/', methods=['GET'])
 def main_page():
-    return render_template("MainPage.html")
+    token = request.cookies.get('token')
+    if token is None:
+        return make_response(redirect('/login'))
+    elif validate_token(token) is None:
+        return jsonify({'message': 'Token is invalid!'}), 401
+    else:
+        return render_template("MainPage.html")
 
 
 @app.route('/userinfo', methods=['GET'])
@@ -162,25 +178,17 @@ def get_userinfo(current_user):
     return user_schema.jsonify(current_user)
 
 
-@app.route("/")
-def check_login():
-    token=request.cookies.get('token')
-    username=request.cookies.get('username')
-    #check if this token is valid for this user
-
-    #if valid then user is already authenticated,
-    #return redirect("MainPage", code=302)  undo comment out when token check is implemented
-    #else redirect to login page
-    return redirect("login", code=302)
 # endpoint to user registeration
 @app.route("/register", methods=["GET"])
 def getRegisterPage():
     return render_template("Register.html");
 
+
 # endpoint to user login
 @app.route("/login", methods=["GET"])
 def getLoginPage():
     return render_template("Login.html");
+
 
 # endpoint to create new user
 @app.route("/user", methods=["POST"])
