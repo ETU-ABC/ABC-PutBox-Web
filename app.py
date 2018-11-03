@@ -114,8 +114,8 @@ def token_required(f):
     def decorated(*args, **kwargs):
         token = None
 
-        if 'x-access-token' in request.headers:
-            token = request.headers['x-access-token']
+        if 'token' in request.cookies:
+            token = request.cookies.get('token')
 
         if not token:
             return jsonify({'message' : 'Token is missing!'}), 401
@@ -129,11 +129,6 @@ def token_required(f):
         return f(current_user, *args, **kwargs)
 
     return decorated
-
-#------LOGIN------
-def myconverter(o):
-    if isinstance(o, datetime.datetime):
-        return o.__str__()
 
 
 @app.route('/login', methods=["POST"])
@@ -149,16 +144,16 @@ def login():
 
     if check_password_hash(user.password, auth.password):
         token = jwt.encode({'userid' : user.user_id}, app.config['SECRET_KEY'])
-        response= make_response(redirect("/redirect"))
-        response.set_cookie('token',token)
+        response = make_response(redirect("/"))
+        response.set_cookie('token', token)
         return response
 
     return make_response('Could not verify', 401, {'WWW-Authenticate' : 'Basic realm="Login required!"'})
 
-@app.route('/redirect', methods=['GET'])
-def redirect():
-    return render_template("MainPage.html");
 
+@app.route('/', methods=['GET'])
+def main_page():
+    return render_template("MainPage.html")
 
 
 @app.route('/userinfo', methods=['GET'])
