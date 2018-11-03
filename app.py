@@ -5,7 +5,6 @@ from flask_marshmallow import Marshmallow
 import os
 import datetime
 import jwt
-import json
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 import secrets
@@ -207,10 +206,11 @@ def get_user():
 
 # endpoint to insert new photo
 @app.route("/photo", methods=["POST"])
-def add_photo():
+@token_required
+def add_photo(currentuser):
     photo_path = request.json['photo_path']
     # TODO update after user authentication
-    uploaded_by = 1
+    uploaded_by = currentuser.username
 
     new_photo = Photo(photo_path, uploaded_by)
 
@@ -271,10 +271,11 @@ def search_tag(tag):
 ### ALBUM
 # endpoint to create new album
 @app.route("/album", methods=["POST"])
-def add_album():
+@token_required
+def add_album(currentuser):
     album_name = request.json['album_name']
     # TODO - Update after authorization
-    owner = 1
+    owner = currentuser.username
     new_album = Album(album_name, owner)
 
     db.session.add(new_album)
