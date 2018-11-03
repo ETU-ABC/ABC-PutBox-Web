@@ -7,13 +7,12 @@ import datetime
 import jwt
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
-import secrets
 
 
 app = Flask(__name__)
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'bil495-abc.sqlite')
-app.config['SECRET_KEY'] = secrets.token_hex()
+app.config['SECRET_KEY'] = 'etu-abc-putbox'
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
 
