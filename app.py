@@ -50,7 +50,7 @@ class Photo(db.Model):
     tags = relationship("Tag")
     album_id = db.Column(db.Integer, db.ForeignKey('album.album_id'))
 
-    def __init__(self, photo_path, uploaded_by):
+    def __init__(self, photo_path, uploaded_by, album_id):
         self.photo_path = photo_path
         self.uploaded_by = uploaded_by
         self.upload_date = datetime.datetime.now()
