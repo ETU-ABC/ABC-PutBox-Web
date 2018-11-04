@@ -293,7 +293,9 @@ def search_tag(current_user, tag):
                 .filter(Photo.tags.any(Tag.tag_desc == tag)) \
                 .filter(Photo.uploaded_by == current_user.user_id)
 
-    return photos_schema.jsonify(photos_with_tag)
+    result = photos_schema.dumps(photos_with_tag)
+    res = json.loads(result.data)
+    return render_template("Search.html", photos=res)
 
 
 # endpoint to add a tag to the photo
@@ -396,6 +398,11 @@ def getMainPage(current_user):
     result = albums_schema.dumps(all_albums)
     res = json.loads(result.data)
     return render_template("MainPage.html", albums=res, owner=1)
+
+# endpoint to show settings
+@app.route("/settings", methods=['GET'])
+def getSettingsPage():
+    return render_template("Settings.html");
 
 
 if __name__ == '__main__':
