@@ -61,8 +61,7 @@ class PhotoSchema(ma.Schema):
 
     class Meta:
         fields = ('photo_id', 'album_id', 'photo_path', 'upload_date', 'uploaded_by', 'tags')
-    tags = ma.Nested('TagSchema', many=True, only='tag_desc')
-
+    tags = ma.Nested('TagSchema', many=True, only=['tag_desc'])
 
 photo_schema = PhotoSchema()
 photos_schema = PhotoSchema(many=True)
@@ -231,56 +230,72 @@ def add_photo(currentuser):
     return photo_schema.jsonify(new_photo)
 
 
-# endpoint to show all photos
+# endpoint to show all photos of the user
 @app.route("/photo", methods=["GET"])
-def get_photo():
-    all_photos = Photo.query.all()
-    result = photos_schema.dump(all_photos)
+@token_required
+def get_photo(current_user):
+    all_photos_of_user = Photo.query.filter(Photo.uploaded_by == current_user.user_id).all()
+    result = photos_schema.dump(all_photos_of_user)
     return photos_schema.jsonify(result.data)
 
 
 # endpoint to get photo detail by id
+# if request made by the photo_owner
 @app.route("/photo/<id>", methods=["GET"])
-def photo_detail(id):
+@token_required
+def photo_detail(current_user, id):
     photo = Photo.query.get(id)
-    return photo_schema.jsonify(photo)
+    if photo.uploaded_by == current_user.user_id:
+        return photo_schema.jsonify(photo)
+    else:
+        return make_response(jsonify({"error":"You have not permission to view the photo!"}), 401)
 
 
 # endpoint to update photo
 @app.route("/photo/<id>", methods=["PUT"])
-def photo_update(id):
+@token_required
+def photo_update(current_user, id):
     tags = request.json['tags']
 
-    # check if tag is already exists for that photo
-    for tag in tags:
-        # get all the photos with the tag
-        res = Photo.query.filter(Photo.tags.any(Tag.tag_desc == tag)).all()
-        # if there is no photo with the tag, add new tag assc with photo
-        if not res:
-            tab_obj = Tag(id, tag)
-            db.session.add(tab_obj)
-
-        # if there are photos with the tag, check if photo <id> has that tag
-        else:
-            for photo in res:
-                if photo.photo_id != int(id):
-                    tab_obj = Tag(id, tag)
-                    db.session.add(tab_obj)
-
-    db.session.commit()
-
     photo = Photo.query.get(id)
-    return photo_schema.jsonify(photo)
+    if photo.uploaded_by == current_user.user_id:
+        # check if tag is already exists for that photo
+        for tag in tags:
+            # get all the photos with the tag
+            res = Photo.query.filter(Photo.tags.any(Tag.tag_desc == tag)).all()
+            # if there is no photo with the tag, add new tag assc with photo
+            if not res:
+                tab_obj = Tag(id, tag)
+                db.session.add(tab_obj)
+
+            # if there are photos with the tag, check if photo <id> has that tag
+            else:
+                for photo in res:
+                    if photo.photo_id != int(id):
+                        tab_obj = Tag(id, tag)
+                        db.session.add(tab_obj)
+
+        db.session.commit()
+
+        photo = Photo.query.get(id)
+        return photo_schema.jsonify(photo)
+    else:
+        return make_response(jsonify({"error":"You have not permission to view the photo!"}), 401)
 
 
 # endpoint to delete photo
 @app.route("/photo/<id>", methods=["DELETE"])
-def photo_delete(id):
+@token_required
+def photo_delete(current_user, id):
     photo = Photo.query.get(id)
-    db.session.delete(photo)
-    db.session.commit()
 
-    return photo_schema.jsonify(photo)
+    # TODO handle the code duplication for checking photo owner
+    if photo.uploaded_by == current_user.user_id:
+        db.session.delete(photo)
+        db.session.commit()
+        return photo_schema.jsonify(photo)
+    else:
+        return make_response(jsonify({"error":"You have not permission to view the photo!"}), 401)
 
 
 # endpoint to search tags
