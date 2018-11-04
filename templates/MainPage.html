@@ -1,74 +1,88 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <!-- Required meta tags -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+{% extends 'layout.html' %}
 
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+{% block body %}
 
-    <title>Main Page</title>
+<div class="container col-md-4 offset-md-4">
 
-  </head>
-  <body>
+  <br><br><br>
+  <h3>If you want to create an album</h3>
+  <form method="POST" class="needs-validation" novalidate>
+    <div class="form-row">
+      <div class="col-md-4 mb-3">
+        <input type="text" class="form-control" id="validationCustom01" placeholder="Entry an album name" required>
+        <div class="valid-feedback">
+          Good album name!
+        </div>
+        <div class="invalid-feedback">
+          Please entry an album name!
+        </div>
+      </div>
 
-  <div class="row">
-    <object class="col-md-12" type="text/html" data="Navbar.html"></object>
-  </div>
+      </div>
 
-  <div class="card col-md-4 offset-md-4" >
-  <img class="card-img-top" src="./bird-photo 750 x 530" alt="Card image cap">
-  <div class="card-body">
-    <h5 class="card-title">Birds</h5>
-    <p class="card-text">I love them.</p>
-    <a href="#" class="btn btn-primary">Go to Album</a>
-  </div>
-</div>
+    <div class="form-group">
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" value="" id="invalidCheck" required>
+        <label class="form-check-label" for="invalidCheck">
+          I really agree that I want to create an album.
+        </label>
+        <div class="invalid-feedback">
+          Please really agree.
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-primary" type="submit">Submit form</button>
+  </form>
 
-<div class="card col-md-4 offset-md-4" >
-<img class="card-img-top" src="./bird-photo 750 x 530" alt="Card image cap">
-<div class="card-body">
-  <h5 class="card-title">Birds</h5>
-  <p class="card-text">I love them.</p>
-  <a href="#" class="btn btn-primary">Go to Album</a>
-</div>
-</div>
+  <br>
+  <hr>
+  <h4 style="color:blue"> Your Album Feed </h4>
+  <br>
 
-<div class="card col-md-4 offset-md-4" >
-<img class="card-img-top" src="./bird-photo 750 x 530" alt="Card image cap">
-<div class="card-body">
-  <h5 class="card-title">Birds</h5>
-  <p class="card-text">I love them.</p>
-  <a href="#" class="btn btn-primary">Go to Album</a>
-</div>
-</div>
+ <!-- Albums list. -->
+  <ul class="list-group">
+  {% for album in albums %}
+    {% if album.owner == owner %}
+      <li class="list-group-item">
+        <div class="card col-md-4 offset-md-4" >
+          <img class="card-img-top" src="../static/photos/bird-photo 750 x 530" alt="Card image cap">
+          <div class="card-body">
+            <h5 class="card-title">{{album.id}}</h5>
+            <p class="card-text">{{album.name}}</p>
+            <a href="albums/"{{albums.id}} class="btn btn-primary">Go to Album</a>
+          </div>
+        </div>
+      </li>
+    {% endif %}
+  {% endfor %}
+  </ul>
 
-<div class="card col-md-4 offset-md-4" >
-<img class="card-img-top" src="./bird-photo 750 x 530" alt="Card image cap">
-<div class="card-body">
-  <h5 class="card-title">Birds</h5>
-  <p class="card-text">I love them.</p>
-  <a href="#" class="btn btn-primary">Go to Album</a>
-</div>
-</div>
-
-<div class="card col-md-4 offset-md-4" >
-<img class="card-img-top" src="./bird-photo 750 x 530" alt="Card image cap">
-<div class="card-body">
-  <h5 class="card-title">Birds</h5>
-  <p class="card-text">I love them.</p>
-  <a href="#" class="btn btn-primary">Go to Album</a>
-</div>
 </div>
 
 
 
+<script>
 
-    <!-- Optional JavaScript -->
-    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
-  </body>
-</html>
+// For disabling form submissions if there are invalid fields
+(function() {
+  'use strict';
+  window.addEventListener('load', function() {
+    // Fetch all the forms we want to apply custom Bootstrap validation styles to
+    var forms = document.getElementsByClassName('needs-validation');
+    // Loop over them and prevent submission
+    var validation = Array.prototype.filter.call(forms, function(form) {
+      form.addEventListener('submit', function(event) {
+        if (form.checkValidity() === false) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+      }, false);
+    });
+  }, false);
+})();
+
+</script>
+
+{% endblock %}
+

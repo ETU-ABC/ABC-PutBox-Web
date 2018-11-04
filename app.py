@@ -50,7 +50,7 @@ class Photo(db.Model):
     tags = relationship("Tag")
     album_id = db.Column(db.Integer, db.ForeignKey('album.album_id'))
 
-    def __init__(self, photo_path, uploaded_by, album_id):
+    def __init__(self, photo_path, uploaded_by):
         self.photo_path = photo_path
         self.uploaded_by = uploaded_by
         self.upload_date = datetime.datetime.now()
@@ -58,7 +58,6 @@ class Photo(db.Model):
 
 
 class PhotoSchema(ma.Schema):
-
     class Meta:
         fields = ('photo_id', 'album_id', 'photo_path', 'upload_date', 'uploaded_by', 'tags')
     tags = ma.Nested('TagSchema', many=True, only=['tag_desc'])
@@ -172,23 +171,19 @@ def main_page():
         return render_template("MainPage.html")
 
 
-@app.route('/userinfo', methods=['GET'])
-@token_required
-def get_userinfo(current_user):
-    return user_schema.jsonify(current_user)
-
-
+    #if valid then user is already authenticated,
+    #return redirect("MainPage", code=302)  undo comment out when token check is implemented
+    #else redirect to login page
+    return redirect("login", code=302)
 # endpoint to user registeration
 @app.route("/register", methods=["GET"])
 def getRegisterPage():
     return render_template("Register.html");
 
-
 # endpoint to user login
 @app.route("/login", methods=["GET"])
 def getLoginPage():
     return render_template("Login.html");
-
 
 # endpoint to create new user
 @app.route("/users/signup", methods=["POST"])
@@ -232,11 +227,15 @@ def add_photo(currentuser):
 
 # endpoint to show all photos of the user
 @app.route("/photo", methods=["GET"])
-@token_required
-def get_photo(current_user):
-    all_photos_of_user = Photo.query.filter(Photo.uploaded_by == current_user.user_id).all()
-    result = photos_schema.dump(all_photos_of_user)
+def get_photo():
+    """""
+    all_photos = Photo.query.all()
+    result = photos_schema.dump(all_photos)
     return photos_schema.jsonify(result.data)
+    """
+    return render_template("PhotoPage.html", photos=[
+
+    ], owner_album = 1)
 
 
 # endpoint to get photo detail by id
@@ -306,7 +305,7 @@ def search_tag(tag):
     return photos_schema.jsonify(photos_with_tag)
 
 
-### ALBUM
+#           ALBUM
 # endpoint to create new album
 @app.route("/album", methods=["POST"])
 @token_required
@@ -319,15 +318,6 @@ def add_album(currentuser):
     db.session.commit()
 
     return album_schema.jsonify(new_album)
-
-
-# endpoint to show all albums
-@app.route("/album", methods=["GET"])
-def get_album():
-    all_albums = Album.query.all()
-    result = albums_schema.dump(all_albums)
-    return albums_schema.jsonify(result.data)
-
 
 # endpoint to get album detail by id
 @app.route("/album/<id>", methods=["GET"])
@@ -358,5 +348,16 @@ def album_delete(id):
     return album_schema.jsonify(album)
 
 
+# endpoint to show all albums
+@app.route("/album", methods=['GET'])
+def getMainPage():
+    all_albums = Album.query.all()
+    result = albums_schema.dump(all_albums)
+    # TODO - Assign albums with the result. No album table in the sqllite3 yet.
+    return render_template("MainPage.html", albums=result, owner=1)
+
+
 if __name__ == '__main__':
     app.run(debug=True)
+
+
