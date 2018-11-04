@@ -268,40 +268,11 @@ def get_photos(current_user, id):
 @app.route("/photo/<id>", methods=["GET"])
 @token_required
 def photo_detail(current_user, id):
-    photo = Photo.query.get(id)
-    if photo.uploaded_by == current_user.user_id:
-        return photo_schema.jsonify(photo)
-    else:
-        return make_response(jsonify({"error":"You have not permission to view the photo!"}), 401)
-
-
-# endpoint to update photo
-@app.route("/photo/<id>", methods=["PUT"])
-@token_required
-def photo_update(current_user, id):
-    tags = request.json['tags']
 
     photo = Photo.query.get(id)
+    print(photo.tags)
+
     if photo.uploaded_by == current_user.user_id:
-        # check if tag is already exists for that photo
-        for tag in tags:
-            # get all the photos with the tag
-            res = Photo.query.filter(Photo.tags.any(Tag.tag_desc == tag)).all()
-            # if there is no photo with the tag, add new tag assc with photo
-            if not res:
-                tab_obj = Tag(id, tag)
-                db.session.add(tab_obj)
-
-            # if there are photos with the tag, check if photo <id> has that tag
-            else:
-                for photo in res:
-                    if photo.photo_id != int(id):
-                        tab_obj = Tag(id, tag)
-                        db.session.add(tab_obj)
-
-        db.session.commit()
-
-        photo = Photo.query.get(id)
         return photo_schema.jsonify(photo)
     else:
         return make_response(jsonify({"error":"You have not permission to view the photo!"}), 401)
@@ -322,6 +293,8 @@ def photo_delete(current_user, id):
         return make_response(jsonify({"error":"You have not permission to view the photo!"}), 401)
 
 
+# TAG-RELATED ENDPOINTS
+
 # endpoint to search tags
 @app.route("/tag/<tag>", methods=["GET"])
 @token_required
@@ -331,6 +304,50 @@ def search_tag(current_user, tag):
                 .filter(Photo.uploaded_by == current_user.user_id)
 
     return photos_schema.jsonify(photos_with_tag)
+
+
+# endpoint to add a tag to the photo
+@app.route("/photo/<id>/tag", methods=["POST"])
+@token_required
+def tag_add(current_user, id):
+    new_tag = request.json['tag']
+
+    photo = Photo.query.get(id)
+    if photo.uploaded_by == current_user.user_id:
+        # check if tag already exists for that photo
+        for tag in photo.tags:
+            if tag.tag_desc == new_tag:
+                return make_response(jsonify({"error": "Photo already has the tag!"}), 400)
+
+        tag_obj = Tag(id, new_tag)
+        db.session.add(tag_obj)
+        db.session.commit()
+
+        return photo_schema.jsonify(photo)
+    else:
+        return make_response(jsonify({"error":"You have not permission to view the photo!"}), 401)
+
+
+# endpoint to delete a tag from the photo
+@app.route("/photo/<id>/tag", methods=["DELETE"])
+@token_required
+def tag_delete(current_user, id):
+    tag_to_delete = request.json['tag']
+
+    photo = Photo.query.get(id)
+
+    if photo.uploaded_by == current_user.user_id:
+        # check if tag exists for that photo
+        for tag in photo.tags:
+            if tag.tag_desc == tag_to_delete:
+                db.session.delete(tag)
+                db.session.commit()
+                return photo_schema.jsonify(photo)
+
+        return make_response(jsonify({"error": "Photo does not have the tag!"}), 400)
+
+    else:
+        return make_response(jsonify({"error":"You have not permission to view the photo!"}), 401)
 
 
 #           ALBUM
