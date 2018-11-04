@@ -1,16 +1,20 @@
-from flask import Flask, request, jsonify, render_template, redirect
+from flask import Flask, request, jsonify, render_template, redirect, make_response
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
 from flask_marshmallow import Marshmallow
 import os
 import datetime
+import jwt
+from functools import wraps
+from werkzeug.security import generate_password_hash, check_password_hash
+
 
 app = Flask(__name__)
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'bil495-abc.sqlite')
+app.config['SECRET_KEY'] = 'etu-abc-putbox'
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
-
 
 class User(db.Model):
     user_id = db.Column(db.Integer, primary_key=True)
@@ -46,20 +50,18 @@ class Photo(db.Model):
     tags = relationship("Tag")
     album_id = db.Column(db.Integer, db.ForeignKey('album.album_id'))
 
-    def __init__(self, photo_path, album_id):
+    def __init__(self, photo_path, uploaded_by):
         self.photo_path = photo_path
-        # TODO - uploaded by or owner ALBUM. ?
-        # self.uploaded_by = uploaded_by
-        self.album_id = album_id
+        self.uploaded_by = uploaded_by
         self.upload_date = datetime.datetime.now()
+        self.album_id = album_id
 
 
 class PhotoSchema(ma.Schema):
 
     class Meta:
-        fields = ('photo_id', 'photo_path', 'upload_date', 'uploaded_by', 'tags')
-    tags = ma.Nested('TagSchema', many=True, only='tag_desc')
-
+        fields = ('photo_id', 'album_id', 'photo_path', 'upload_date', 'uploaded_by', 'tags')
+    tags = ma.Nested('TagSchema', many=True, only=['tag_desc'])
 
 photo_schema = PhotoSchema()
 photos_schema = PhotoSchema(many=True)
@@ -99,36 +101,90 @@ class Album(db.Model):
 
 class AlbumSchema(ma.Schema):
     class Meta:
-        fields = ('album_name', 'owner', 'photos')
-    photos = ma.Nested('PhotoSchema', many=True)
+        fields = ('album_name', 'album_id', 'owner', 'photos')
+    photos = ma.Nested('PhotoSchema', many=True, exclude=('album_id',))
 
 
 album_schema = AlbumSchema()
 albums_schema = AlbumSchema(many=True)
 
-@app.route("/")
-def check_login():
-    token=request.cookies.get('token')
-    username=request.cookies.get('username')
-    #check if this token is valid for this user
+
+#------AUTH------
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+
+        if 'token' in request.cookies:
+            token = request.cookies.get('token')
+
+        if not token:
+            return jsonify({'message' : 'Token is missing!'}), 401
+
+        current_user = validate_token(token)
+        if current_user is None:
+            return jsonify({'message': 'Token is invalid!'}), 401
+
+        return f(current_user, *args, **kwargs)
+
+    return decorated
+
+
+# validate if token is signatured and correct
+def validate_token(token):
+    try:
+        data = jwt.decode(token, app.config['SECRET_KEY'])
+        current_user = User.query.filter_by(user_id=data['userid']).first()
+        return current_user
+    except:
+        return None
+
+
+@app.route('/login', methods=["POST"])
+def login():
+    data = request.form.to_dict()
+    username = data['username']
+    password = data['password']
+    if not username or not password:
+        return make_response('Could not verify', 401, {'WWW-Authenticate' : 'Basic realm="Login required!"'})
+
+    user = User.query.filter_by(username=username).first()
+    print("\n",user.password," - ",user.username)
+    if not user:
+        return make_response('Could not verify', 401, {'WWW-Authenticate' : 'Basic realm="Login required!"'})
+
+    if check_password_hash(user.password, password):
+        token = jwt.encode({'userid' : user.user_id}, app.config['SECRET_KEY'])
+        response = make_response(redirect("/"))
+        response.set_cookie('token', token)
+        return response
+    return make_response('Could not verify', 401, {'WWW-Authenticate' : 'Basic realm="Login required!"'})
+
+
+@app.route('/', methods=['GET'])
+def main_page():
+    token = request.cookies.get('token')
+    if token is None:
+        return make_response(redirect('/login'))
+    elif validate_token(token) is None:
+        return jsonify({'message': 'Token is invalid!'}), 401
+    else:
+        return render_template("MainPage.html")
+
 
     #if valid then user is already authenticated,
     #return redirect("MainPage", code=302)  undo comment out when token check is implemented
     #else redirect to login page
     return redirect("login", code=302)
-
-
 # endpoint to user registeration
 @app.route("/register", methods=["GET"])
 def getRegisterPage():
     return render_template("Register.html");
 
-
 # endpoint to user login
 @app.route("/login", methods=["GET"])
 def getLoginPage():
     return render_template("Login.html");
-
 
 # endpoint to create new user
 @app.route("/user", methods=["POST"])
@@ -137,7 +193,9 @@ def add_user():
     username= data['username']
     email = data['email']
     password = data['password']
-    new_user = User(username, email, password)
+    hashed_password=generate_password_hash(password, method='sha256')
+    new_user = User(username, email, hashed_password)
+
 
     db.session.add(new_user)
     db.session.commit()
@@ -154,12 +212,13 @@ def get_user():
 
 # endpoint to insert new photo
 @app.route("/photo", methods=["POST"])
-def add_photo():
+@token_required
+def add_photo(currentuser):
     photo_path = request.json['photo_path']
-    # TODO update after user authentication
-    uploaded_by = 1
+    album_id = request.json['album_id']
+    uploaded_by = currentuser.user_id
 
-    new_photo = Photo(photo_path, uploaded_by)
+    new_photo = Photo(photo_path, uploaded_by, album_id)
 
     db.session.add(new_photo)
     db.session.commit()
@@ -167,7 +226,7 @@ def add_photo():
     return photo_schema.jsonify(new_photo)
 
 
-# endpoint to show all photos
+# endpoint to show all photos of the user
 @app.route("/photo", methods=["GET"])
 def get_photo():
     """""
@@ -181,35 +240,62 @@ def get_photo():
 
 
 # endpoint to get photo detail by id
+# if request made by the photo_owner
 @app.route("/photo/<id>", methods=["GET"])
-def photo_detail(id):
+@token_required
+def photo_detail(current_user, id):
     photo = Photo.query.get(id)
-    return photo_schema.jsonify(photo)
+    if photo.uploaded_by == current_user.user_id:
+        return photo_schema.jsonify(photo)
+    else:
+        return make_response(jsonify({"error":"You have not permission to view the photo!"}), 401)
 
 
 # endpoint to update photo
 @app.route("/photo/<id>", methods=["PUT"])
-def photo_update(id):
+@token_required
+def photo_update(current_user, id):
     tags = request.json['tags']
-    for tag in tags:
-        # TODO check if tag is already exists for that photo
-        tab_obj = Tag(id, tag)
-        db.session.add(tab_obj)
-
-    db.session.commit()
 
     photo = Photo.query.get(id)
-    return photo_schema.jsonify(photo)
+    if photo.uploaded_by == current_user.user_id:
+        # check if tag is already exists for that photo
+        for tag in tags:
+            # get all the photos with the tag
+            res = Photo.query.filter(Photo.tags.any(Tag.tag_desc == tag)).all()
+            # if there is no photo with the tag, add new tag assc with photo
+            if not res:
+                tab_obj = Tag(id, tag)
+                db.session.add(tab_obj)
+
+            # if there are photos with the tag, check if photo <id> has that tag
+            else:
+                for photo in res:
+                    if photo.photo_id != int(id):
+                        tab_obj = Tag(id, tag)
+                        db.session.add(tab_obj)
+
+        db.session.commit()
+
+        photo = Photo.query.get(id)
+        return photo_schema.jsonify(photo)
+    else:
+        return make_response(jsonify({"error":"You have not permission to view the photo!"}), 401)
 
 
 # endpoint to delete photo
 @app.route("/photo/<id>", methods=["DELETE"])
-def photo_delete(id):
+@token_required
+def photo_delete(current_user, id):
     photo = Photo.query.get(id)
-    db.session.delete(photo)
-    db.session.commit()
 
-    return photo_schema.jsonify(photo)
+    # TODO handle the code duplication for checking photo owner
+    if photo.uploaded_by == current_user.user_id:
+        db.session.delete(photo)
+        db.session.commit()
+        return photo_schema.jsonify(photo)
+    else:
+        return make_response(jsonify({"error":"You have not permission to view the photo!"}), 401)
 
 
 # endpoint to search tags
@@ -223,10 +309,10 @@ def search_tag(tag):
 #           ALBUM
 # endpoint to create new album
 @app.route("/album", methods=["POST"])
-def add_album():
+@token_required
+def add_album(currentuser):
     album_name = request.json['album_name']
-    # TODO - Update after authorization
-    owner = 1
+    owner = currentuser.user_id
     new_album = Album(album_name, owner)
 
     db.session.add(new_album)
