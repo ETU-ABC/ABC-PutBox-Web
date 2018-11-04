@@ -50,16 +50,17 @@ class Photo(db.Model):
     tags = relationship("Tag")
     album_id = db.Column(db.Integer, db.ForeignKey('album.album_id'))
 
-    def __init__(self, photo_path, uploaded_by):
+    def __init__(self, photo_path, uploaded_by, album_id):
         self.photo_path = photo_path
         self.uploaded_by = uploaded_by
         self.upload_date = datetime.datetime.now()
+        self.album_id = album_id
 
 
 class PhotoSchema(ma.Schema):
 
     class Meta:
-        fields = ('photo_id', 'photo_path', 'upload_date', 'uploaded_by', 'tags')
+        fields = ('photo_id', 'album_id', 'photo_path', 'upload_date', 'uploaded_by', 'tags')
     tags = ma.Nested('TagSchema', many=True, only='tag_desc')
 
 
@@ -101,8 +102,8 @@ class Album(db.Model):
 
 class AlbumSchema(ma.Schema):
     class Meta:
-        fields = ('album_name', 'owner', 'photos')
-    photos = ma.Nested('PhotoSchema', many=True)
+        fields = ('album_name', 'album_id', 'owner', 'photos')
+    photos = ma.Nested('PhotoSchema', many=True, exclude=('album_id',))
 
 
 album_schema = AlbumSchema()
@@ -219,9 +220,10 @@ def get_user():
 @token_required
 def add_photo(currentuser):
     photo_path = request.json['photo_path']
+    album_id = request.json['album_id']
     uploaded_by = currentuser.user_id
 
-    new_photo = Photo(photo_path, uploaded_by)
+    new_photo = Photo(photo_path, uploaded_by, album_id)
 
     db.session.add(new_photo)
     db.session.commit()
