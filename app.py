@@ -299,8 +299,11 @@ def photo_delete(current_user, id):
 
 # endpoint to search tags
 @app.route("/tag/<tag>", methods=["GET"])
-def search_tag(tag):
-    photos_with_tag = Photo.query.filter(Photo.tags.any(Tag.tag_desc == tag))
+@token_required
+def search_tag(current_user, tag):
+    photos_with_tag = Photo.query\
+                .filter(Photo.tags.any(Tag.tag_desc == tag)) \
+                .filter(Photo.uploaded_by == current_user.user_id)
 
     return photos_schema.jsonify(photos_with_tag)
 
