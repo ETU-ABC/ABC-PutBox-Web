@@ -1,25 +1,83 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <!-- Required meta tags -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+{% extends 'Layout.html' %}
 
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-
-    <title>Album Page</title>
-  </head>
-  <body>
+{% block body %}
 
 
-    <h1> Photos will be seen here.</h1>
+<div class="container col-md-4 offset-md-4">
+
+  <br><br><br>
+  <h3>If you want to add a Photo</h3>
+  <form method="POST" class="needs-validation" novalidate>
+    <div class="form-row">
+      <div class="col-md-4 mb-3">
+        <input type="text" class="form-control" id="validationCustom01" placeholder="Entry an photo description" required>
+        <div class="invalid-feedback">
+          Please entry a description!
+        </div>
+      </div>
+      </div>
+
+    <div class="form-group">
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" value="" id="invalidCheck" required>
+        <div class="invalid-feedback">
+          Please really agree.
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-primary" type="submit">Submit form</button>
+  </form>
+
+  <br>
+  <hr>
+  <h4 style="color:blue"> Your Photo Feed in Album id: {{owner_album}}</h4>
+  <br>
+
+ <!-- Albums list. -->
+  <ul class="list-group">
+  {% for photo in photos %}
+    {% if photo.album_id == owner_album %}
+      <li class="list-group-item">
+        <div class="card col-md-4 offset-md-4" >
+          <img class="card-img-top" src={{photo.photo_path}} alt="Card image cap">
+          <div class="card-body">
+            {%  for tag in photo.tags %}
+                <h5 class="card-title">{{tag.tag_desc}}</h5>
+            {% endfor %}
+            <p class="card-text">Uploaded by, {{photo.uploaded_by}} _ Date: {{photo.upload_date}}</p>
+            <a href="albums/"{{albums.id}} class="btn btn-primary">Go to Album</a>
+          </div>
+        </div>
+      </li>
+    {% endif %}
+  {% endfor %}
+  </ul>
+
+</div>
 
 
-    <!-- Optional JavaScript -->
-    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
-  </body>
-</html>
+
+<script>
+
+// For disabling form submissions if there are invalid fields
+(function() {
+  'use strict';
+  window.addEventListener('load', function() {
+    // Fetch all the forms we want to apply custom Bootstrap validation styles to
+    var forms = document.getElementsByClassName('needs-validation');
+    // Loop over them and prevent submission
+    var validation = Array.prototype.filter.call(forms, function(form) {
+      form.addEventListener('submit', function(event) {
+        if (form.checkValidity() === false) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+      }, false);
+    });
+  }, false);
+})();
+
+</script>
+
+{% endblock %}

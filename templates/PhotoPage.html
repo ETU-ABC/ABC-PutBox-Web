@@ -2,83 +2,85 @@
 
 {% block body %}
 
+<div class="card col-md-4 offset-md-4">
+  <img class="card-img-top" src={{photo.photo_path}} alt="Card image cap">
+  <p class="card-text" id="get_photo_id" value={{photo.photo_id}}>Uploaded by {{photo.uploaded_by}} in {{photo.upload_date}}</p>
 
-<div class="container col-md-4 offset-md-4">
-
-  <br><br><br>
-  <h3>If you want to add a Photo</h3>
-  <form method="POST" class="needs-validation" novalidate>
-    <div class="form-row">
-      <div class="col-md-4 mb-3">
-        <input type="text" class="form-control" id="validationCustom01" placeholder="Entry an photo description" required>
-        <div class="invalid-feedback">
-          Please entry a description!
-        </div>
-      </div>
-
-      </div>
-
-    <div class="form-group">
-      <div class="form-check">
-        <input class="form-check-input" type="checkbox" value="" id="invalidCheck" required>
-        <div class="invalid-feedback">
-          Please really agree.
-        </div>
+  <form class="needs-validation" id="add_form" name="add_form" method="post" novalidate>
+  <div class="form-row">
+    <div class="col-md-4 mb-3">
+      <input type="text" class="form-control" name="tag" id="validationCustom01" placeholder="Entry a new tag name" required>
+      <div class="invalid-feedback">
+        Please entry a tag name!
       </div>
     </div>
-    <button class="btn btn-primary" type="submit">Submit form</button>
+  <button class="btn btn-primary" type="submit">Add tag</button>
+  </div>
   </form>
 
-  <br>
-  <hr>
-  <h4 style="color:blue"> Your Photo Feed in Album id: {{owner_album}}</h4>
-  <br>
-
- <!-- Albums list. -->
-  <ul class="list-group">
-  {% for photo in photos %}
-    {% if photo.album_id == owner_album %}
-      <li class="list-group-item">
-        <div class="card col-md-4 offset-md-4" >
-          <img class="card-img-top" src={{photo.photo_path}} alt="Card image cap">
-          <div class="card-body">
-              {%  for tag in photo.tags %}
-                <h5 class="card-title">{{tag.tag_desc}}</h5>
-              {% endfor %}
-            <p class="card-text">Uploaded by, {{photo.uploaded_by}} _ Date: {{photo.upload_date}}</p>
-{#            <a href="albums/"{{albums.id}} class="btn btn-primary">Go to Album</a>#}
+  <h3 style="color:blue">Your tag feed</h3>
+    <ul class="list-group">
+    {%  for tag in photo.tags %}
+      <li class = "list-group-item">
+        <form class="needs-validation" id="delete_form" name="delete_form" method="post" novalidate>
+        <div class="form-row">
+          <div class="col-md-4 mb-3">
+            <p class="card-text" name="tag" id="validationCustom02" value={{tag.tag_desc}}>{{tag.tag_desc}}</p>
           </div>
+        <button class="btn btn-primary" type="submit">Delete the tag</button>
         </div>
+        </form>
       </li>
-    {% endif %}
-  {% endfor %}
-  </ul>
+    {% endfor %}
+    </ul>
+  </div>
 
 </div>
 
-
-
 <script>
+$(document).ready(function(){
+  $("#add_form").click(function(e){
+    e.preventDefault();
 
-// For disabling form submissions if there are invalid fields
-(function() {
-  'use strict';
-  window.addEventListener('load', function() {
-    // Fetch all the forms we want to apply custom Bootstrap validation styles to
-    var forms = document.getElementsByClassName('needs-validation');
-    // Loop over them and prevent submission
-    var validation = Array.prototype.filter.call(forms, function(form) {
-      form.addEventListener('submit', function(event) {
-        if (form.checkValidity() === false) {
-          event.preventDefault();
-          event.stopPropagation();
+    $.ajax({
+        url: '../photo/1/tag', // url where to submit the request //TODO
+        type : "POST", // type of action is POST || GET
+        dataType : 'json', // data type
+        contentType: 'application/json',
+        data : objectifyForm($("#add_form")), // post data || get data
+        success : function(result) {
+            window.location.assign("/photo/1"); //TODO
         }
-        form.classList.add('was-validated');
-      }, false);
-    });
-  }, false);
-})();
+    })
+  });
+});
+
+$(document).ready(function(){
+  $("#delete_form").click(function(e){
+    e.preventDefault();
+
+    $.ajax({
+        url: '../photo/1/tag', // url where to submit the request //TODO
+        type : "DELETE", // type of action is DELETE
+        dataType : 'json', // data type
+        contentType: 'application/json',
+        data : objectifyForm($("#delete_form")), // post data || get data
+        success : function(result) {
+            window.location.assign("/photo/1"); //TODO
+        }
+    })
+  });
+});
+
+function objectifyForm(form) {//serialize data function
+  var data = {};
+  var dataArray = form.serializeArray();
+  for(var i=0;i<dataArray.length;i++){
+    data[dataArray[i].name] = dataArray[i].value;
+  }
+  return JSON.stringify(data);
+}
+
 
 </script>
-
 {% endblock %}
