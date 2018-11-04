@@ -5,6 +5,7 @@ from flask_marshmallow import Marshmallow
 import os
 import datetime
 import jwt
+import json
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -193,7 +194,7 @@ def add_user():
     email = data['email']
     password = data['password']
     hashed_password=generate_password_hash(password, method='sha256')
-    new_user = User(username, email, hashed_password
+    new_user = User(username, email, hashed_password)
 
     db.session.add(new_user)
     db.session.commit()
@@ -236,6 +237,16 @@ def get_photo():
 
     ], owner_album = 1)
 
+# endpoint to show all the photos in an album
+@app.route("/album/<id>", methods=['GET'])
+@token_required
+def get_photos(current_user, id):
+    photos = Photo.query\
+            .filter(Photo.uploaded_by == current_user.user_id)\
+            .filter(Photo.album_id == id)
+    result = photos_schema.dumps(photos)
+    res = json.loads(result.data)
+    return render_template("PhotoPage.html", photos=res, owner_album=1)
 
 # endpoint to get photo detail by id
 # if request made by the photo_owner

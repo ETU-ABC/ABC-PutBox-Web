@@ -42,9 +42,11 @@
         <div class="card col-md-4 offset-md-4" >
           <img class="card-img-top" src={{photo.photo_path}} alt="Card image cap">
           <div class="card-body">
-            <h5 class="card-title">{{tags}}</h5>
-            <p class="card-text">Uploaded by, {{uploaded_by}} _ Date: {{upload_date}}</p>
-            <a href="albums/"{{albums.id}} class="btn btn-primary">Go to Album</a>
+              {%  for tag in photo.tags %}
+                <h5 class="card-title">{{tag.tag_desc}}</h5>
+              {% endfor %}
+            <p class="card-text">Uploaded by, {{photo.uploaded_by}} _ Date: {{photo.upload_date}}</p>
+{#            <a href="albums/"{{albums.id}} class="btn btn-primary">Go to Album</a>#}
           </div>
         </div>
       </li>
