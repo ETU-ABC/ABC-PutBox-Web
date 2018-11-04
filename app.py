@@ -11,6 +11,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'bi
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
 
+
 class User(db.Model):
     user_id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True)
@@ -45,9 +46,11 @@ class Photo(db.Model):
     tags = relationship("Tag")
     album_id = db.Column(db.Integer, db.ForeignKey('album.album_id'))
 
-    def __init__(self, photo_path, uploaded_by):
+    def __init__(self, photo_path, album_id):
         self.photo_path = photo_path
-        self.uploaded_by = uploaded_by
+        # TODO - uploaded by or owner ALBUM. ?
+        # self.uploaded_by = uploaded_by
+        self.album_id = album_id
         self.upload_date = datetime.datetime.now()
 
 
@@ -113,15 +116,19 @@ def check_login():
     #return redirect("MainPage", code=302)  undo comment out when token check is implemented
     #else redirect to login page
     return redirect("login", code=302)
+
+
 # endpoint to user registeration
 @app.route("/register", methods=["GET"])
 def getRegisterPage():
     return render_template("Register.html");
 
+
 # endpoint to user login
 @app.route("/login", methods=["GET"])
 def getLoginPage():
     return render_template("Login.html");
+
 
 # endpoint to create new user
 @app.route("/user", methods=["POST"])
@@ -163,9 +170,14 @@ def add_photo():
 # endpoint to show all photos
 @app.route("/photo", methods=["GET"])
 def get_photo():
+    """""
     all_photos = Photo.query.all()
     result = photos_schema.dump(all_photos)
     return photos_schema.jsonify(result.data)
+    """
+    return render_template("PhotoPage.html", photos=[
+
+    ], owner_album = 1)
 
 
 # endpoint to get photo detail by id
@@ -208,7 +220,7 @@ def search_tag(tag):
     return photos_schema.jsonify(photos_with_tag)
 
 
-### ALBUM
+#           ALBUM
 # endpoint to create new album
 @app.route("/album", methods=["POST"])
 def add_album():
@@ -221,15 +233,6 @@ def add_album():
     db.session.commit()
 
     return album_schema.jsonify(new_album)
-
-
-# endpoint to show all albums
-@app.route("/album", methods=["GET"])
-def get_album():
-    all_albums = Album.query.all()
-    result = albums_schema.dump(all_albums)
-    return albums_schema.jsonify(result.data)
-
 
 # endpoint to get album detail by id
 @app.route("/album/<id>", methods=["GET"])
@@ -260,5 +263,19 @@ def album_delete(id):
     return album_schema.jsonify(album)
 
 
+# endpoint to show all albums
+@app.route("/album", methods=['GET'])
+def getMainPage():
+    #all_albums = Album.query.all()
+    #result = albums_schema.dump(all_albums)
+    # TODO - Assign albums with the result. No album table in the sqllite3 yet.
+    return render_template("MainPage.html", albums=[
+                                                Album("Kuslar", 1),
+                                                Album("Hayvanlar",1),
+                                                Album("Bitkiler",2)
+                                                    ], owner=1)
+
 if __name__ == '__main__':
     app.run(debug=True)
+
+
