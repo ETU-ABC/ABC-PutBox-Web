@@ -112,7 +112,7 @@ class Album(db.Model):
 class AlbumSchema(ma.Schema):
     class Meta:
         fields = ('album_name', 'album_id', 'owner', 'photos')
-    PHOTOS = ma.Nested('PhotoSchema', many=True, exclude=('album_id',))
+    photos = ma.Nested('PhotoSchema', many=True, exclude=('album_id',))
 
 
 album_schema = AlbumSchema()
@@ -395,11 +395,12 @@ def album_delete(id):
 
 # endpoint to show all albums
 @app.route("/album", methods=['GET'])
-def getMainPage():
-    all_albums = Album.query.all()
-    result = albums_schema.dump(all_albums)
-    # TODO - Assign albums with the result. No album table in the sqllite3 yet.
-    return render_template("MainPage.html", albums=result, owner=1)
+@token_required
+def getMainPage(current_user):
+    all_albums = Album.query.filter(Album.owner == current_user.user_id)
+    result = albums_schema.dumps(all_albums)
+    res = json.loads(result.data)
+    return render_template("MainPage.html", albums=res, owner=1)
 
 
 if __name__ == '__main__':
