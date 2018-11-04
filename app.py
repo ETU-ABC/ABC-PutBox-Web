@@ -191,7 +191,7 @@ def getLoginPage():
 
 
 # endpoint to create new user
-@app.route("/user", methods=["POST"])
+@app.route("/users/signup", methods=["POST"])
 def add_user():
     data= request.form.to_dict()
     username= data['username']
