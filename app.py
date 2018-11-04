@@ -50,7 +50,7 @@ class Photo(db.Model):
     tags = relationship("Tag")
     album_id = db.Column(db.Integer, db.ForeignKey('album.album_id'))
 
-    def __init__(self, photo_path, uploaded_by):
+    def __init__(self, photo_path, uploaded_by, album_id):
         self.photo_path = photo_path
         self.uploaded_by = uploaded_by
         self.upload_date = datetime.datetime.now()
@@ -298,8 +298,11 @@ def photo_delete(current_user, id):
 
 # endpoint to search tags
 @app.route("/tag/<tag>", methods=["GET"])
-def search_tag(tag):
-    photos_with_tag = Photo.query.filter(Photo.tags.any(Tag.tag_desc == tag))
+@token_required
+def search_tag(current_user, tag):
+    photos_with_tag = Photo.query\
+                .filter(Photo.tags.any(Tag.tag_desc == tag)) \
+                .filter(Photo.uploaded_by == current_user.user_id)
 
     return photos_schema.jsonify(photos_with_tag)
 
