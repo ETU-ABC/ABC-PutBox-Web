@@ -252,16 +252,6 @@ def get_photo():
 
     ], owner_album = 1)
 
-# endpoint to show all the photos in an album
-@app.route("/album/<id>", methods=['GET'])
-@token_required
-def get_photos(current_user, id):
-    photos = Photo.query\
-            .filter(Photo.uploaded_by == current_user.user_id)\
-            .filter(Photo.album_id == id)
-    result = photos_schema.dumps(photos)
-    res = json.loads(result.data)
-    return render_template("PhotoPage.html", photos=res, owner_album=1)
 
 # endpoint to get photo detail by id
 # if request made by the photo_owner
@@ -364,12 +354,17 @@ def add_album(currentuser):
 
     return album_schema.jsonify(new_album)
 
-# endpoint to get album detail by id
-@app.route("/album/<id>", methods=["GET"])
-def album_detail(id):
-    album = Album.query.get(id)
-    return album_schema.jsonify(album)
 
+# endpoint to show all the photos in an album
+@app.route("/album/<id>", methods=['GET'])
+@token_required
+def get_album(current_user, id):
+    photos = Photo.query\
+            .filter(Photo.uploaded_by == current_user.user_id)\
+            .filter(Photo.album_id == id)
+    result = photos_schema.dumps(photos)
+    res = json.loads(result.data)
+    return render_template("AlbumPage.html", photos=res, owner_album=current_user.username)
 
 # endpoint to update album
 @app.route("/album/<id>", methods=["PUT"])
