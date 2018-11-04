@@ -7,6 +7,7 @@ import datetime
 import jwt
 import json
 from functools import wraps
+from flask_uploads import UploadSet, configure_uploads, IMAGES
 from werkzeug.security import generate_password_hash, check_password_hash
 
 
@@ -14,8 +15,16 @@ app = Flask(__name__)
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'bil495-abc.sqlite')
 app.config['SECRET_KEY'] = 'etu-abc-putbox'
+
+# IMAGE UPLOAD
+PHOTOS = UploadSet('photos', IMAGES)
+
+app.config['UPLOADED_PHOTOS_DEST'] = 'static/photos'
+configure_uploads(app, PHOTOS)
+
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
+
 
 class User(db.Model):
     user_id = db.Column(db.Integer, primary_key=True)
@@ -63,6 +72,7 @@ class PhotoSchema(ma.Schema):
         fields = ('photo_id', 'album_id', 'photo_path', 'upload_date', 'uploaded_by', 'tags')
     tags = ma.Nested('TagSchema', many=True, only=['tag_desc'])
 
+
 photo_schema = PhotoSchema()
 photos_schema = PhotoSchema(many=True)
 
@@ -92,7 +102,7 @@ class Album(db.Model):
     owner = db.Column(db.Integer, db.ForeignKey('user.user_id'))
     # TODO album cover is set to first photo in the album
     # cover = db.Column(Integer, ForeignKey('photo.photo_id'))
-    photos = relationship("Photo")
+    PHOTOS = relationship("Photo")
 
     def __init__(self, album_name, owner):
         self.album_name = album_name
@@ -102,7 +112,7 @@ class Album(db.Model):
 class AlbumSchema(ma.Schema):
     class Meta:
         fields = ('album_name', 'album_id', 'owner', 'photos')
-    photos = ma.Nested('PhotoSchema', many=True, exclude=('album_id',))
+    PHOTOS = ma.Nested('PhotoSchema', many=True, exclude=('album_id',))
 
 
 album_schema = AlbumSchema()
@@ -169,7 +179,8 @@ def main_page():
     elif validate_token(token) is None:
         return jsonify({'message': 'Token is invalid!'}), 401
     else:
-        return render_template("MainPage.html")
+        return getMainPage()
+
 
 
     #if valid then user is already authenticated,
@@ -212,11 +223,15 @@ def get_user():
 # endpoint to insert new photo
 @app.route("/photo", methods=["POST"])
 @token_required
-def add_photo(currentuser):
-    photo_path = request.json['photo_path']
+def add_photo(current_user):
+    if 'photo' in request.files:
+        filename = PHOTOS.save(request.files['photo'])
+        photo_path = PHOTOS.path(filename)
+    else:
+        return "No image found!", 415
     album_id = request.json['album_id']
-    uploaded_by = currentuser.user_id
-
+    uploaded_by = current_user.user_id
+    photo_path = "../../" + photo_path
     new_photo = Photo(photo_path, uploaded_by, album_id)
 
     db.session.add(new_photo)
