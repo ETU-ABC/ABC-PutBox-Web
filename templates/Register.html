@@ -33,28 +33,27 @@
     </div>
 
     <script>
-      function objectifyForm(dataString) {//serialize data function
-        var params = dataString.split("&");
-        var obj = {};
-        for (var i in params) {
-        var keys = params[i].split("=");
-        obj[keys[0]] = keys[1];
+      function objectifyForm(form) {//serialize data function
+        var data = {};
+        var dataArray = form.serializeArray();
+        for(var i=0;i<dataArray.length;i++){
+          data[dataArray[i].name] = dataArray[i].value;
         }
-        return obj;
+        return JSON.stringify(data);
       }
       $(document).ready(function(){
           $("#form").on('submit', function(e){
             e.preventDefault();
-              var json = objectifyForm($("#form").serialize());
-              $.ajax({
-                  url: '../users/signup', // url where to submit the request
-                  type : "POST", // type of action POST || GET
-                  dataType : 'json', // data type
-                  data : json, // post data || get data
-                  success : function(result) {
-                      window.location.assign("/album");
-                  }
-              })
+            $.ajax({
+                url: '../users/signup', // url where to submit the request
+                type : "POST", // type of action POST || GET
+                dataType : 'json', // data type
+                contentType: 'application/json',
+                data : objectifyForm($("#form")), // post data || get data
+                success : function(result) {
+                    window.location.assign("/");
+                }
+            })
           });
       });
     </script>

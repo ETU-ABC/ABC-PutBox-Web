@@ -141,7 +141,7 @@ def validate_token(token):
 
 @app.route('/login', methods=["POST"])
 def login():
-    data = request.form.to_dict()
+    data = request.json
     username = data['username']
     password = data['password']
     if not username or not password:
@@ -188,13 +188,12 @@ def getLoginPage():
 # endpoint to create new user
 @app.route("/users/signup", methods=["POST"])
 def add_user():
-    data= request.form.to_dict()
+    data= request.json
     username= data['username']
     email = data['email']
     password = data['password']
     hashed_password=generate_password_hash(password, method='sha256')
-    new_user = User(username, email, hashed_password)
-
+    new_user = User(username, email, hashed_password
 
     db.session.add(new_user)
     db.session.commit()
@@ -359,5 +358,3 @@ def getMainPage():
 
 if __name__ == '__main__':
     app.run(debug=True)
-
-

@@ -19,7 +19,7 @@
 
 
     <div class="col-md-4 offset-md-4">
-      <form class="form-signin" id="form" name="form" method="post">
+      <form class="form-signin" id="form" name="form" method="post" contentType>
         <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
         <label for="username" class="sr-only">Username</label>
         <input type="text" name="username" class="form-control" placeholder="Username" required autofocus>
@@ -32,31 +32,30 @@
     </div>
 
     <script>
-      function objectifyForm(dataString) {//serialize data function
-        var params = dataString.split("&");
-        var obj = {};
-        for (var i in params) {
-        var keys = params[i].split("=");
-        obj[keys[0]] = keys[1];
+      function objectifyForm(form) {//serialize data function
+        var data = {};
+        var dataArray = form.serializeArray();
+        for(var i=0;i<dataArray.length;i++){
+          data[dataArray[i].name] = dataArray[i].value;
         }
-        return obj;
+        return JSON.stringify(data);
       }
       $(document).ready(function(){
           $("#form").on('submit', function(e){
             e.preventDefault();
-              var json = objectifyForm($("#form").serialize());
-              $.ajax({
-                  url: '../login', // url where to submit the request
-                  type : "POST", // type of action POST || GET
-                  dataType : 'json', // data type
-                  data : json, // post data || get data
-                  success : function(result) {
-                      window.location.assign("/MainPage");
-                  },
-                  error: function(xhr, resp, text) {
-                      alert("Login failed, wrong user credentials");
-                  }
-              })
+            $.ajax({
+                url: '../login', // url where to submit the request
+                type : "POST", // type of action POST || GET
+                dataType : 'json', // data type
+                contentType: 'application/json',
+                data : objectifyForm($("#form")), // post data || get data
+                success : function(result) {
+                    window.location.assign("/");
+                },
+                error: function(xhr, resp, text) {
+                    alert("Login failed, wrong user credentials");
+                }
+            })
           });
       });
     </script>

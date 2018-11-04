@@ -1,4 +1,4 @@
-{% extends 'layout.html' %}
+{% extends 'Layout.html' %}
 
 {% block body %}
 
@@ -6,10 +6,10 @@
 
   <br><br><br>
   <h3>If you want to create an album</h3>
-  <form method="POST" class="needs-validation" novalidate>
+  <form class="needs-validation" id="form" name="form" method="post" novalidate>
     <div class="form-row">
       <div class="col-md-4 mb-3">
-        <input type="text" class="form-control" id="validationCustom01" placeholder="Entry an album name" required>
+        <input type="text" class="form-control" name="album_name" id="validationCustom01" placeholder="Entry an album name" required>
         <div class="valid-feedback">
           Good album name!
         </div>
@@ -83,6 +83,30 @@
 })();
 
 </script>
+<script>
+  function objectifyForm(form) {//serialize data function
+    var data = {};
+    var dataArray = form.serializeArray();
+    for(var i=0;i<dataArray.length;i++){
+      data[dataArray[i].name] = dataArray[i].value;
+    }
+    return JSON.stringify(data);
+  }
+  $(document).ready(function(){
+      $("#form").on('submit', function(e){
+        e.preventDefault();
+          $.ajax({
+              url: '../album', // url where to submit the request
+              type : "POST", // type of action POST || GET
+              dataType : 'json', // data type
+              contentType: 'application/json',
+              data : objectifyForm($("#form")), // post data || get data
+              success : function(result) {
+                  window.location.assign("/album");
+              }
+          })
+      });
+  });
+</script>
 
 {% endblock %}
-
