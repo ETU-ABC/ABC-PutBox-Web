@@ -102,7 +102,7 @@ class Album(db.Model):
     owner = db.Column(db.Integer, db.ForeignKey('user.user_id'))
     # TODO album cover is set to first photo in the album
     # cover = db.Column(Integer, ForeignKey('photo.photo_id'))
-    PHOTOS = relationship("Photo")
+    photos = relationship("Photo")
 
     def __init__(self, album_name, owner):
         self.album_name = album_name
