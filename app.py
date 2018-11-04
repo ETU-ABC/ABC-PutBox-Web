@@ -58,7 +58,6 @@ class Photo(db.Model):
 
 
 class PhotoSchema(ma.Schema):
-
     class Meta:
         fields = ('photo_id', 'album_id', 'photo_path', 'upload_date', 'uploaded_by', 'tags')
     tags = ma.Nested('TagSchema', many=True, only=['tag_desc'])
@@ -352,14 +351,11 @@ def album_delete(id):
 # endpoint to show all albums
 @app.route("/album", methods=['GET'])
 def getMainPage():
-    #all_albums = Album.query.all()
-    #result = albums_schema.dump(all_albums)
+    all_albums = Album.query.all()
+    result = albums_schema.dump(all_albums)
     # TODO - Assign albums with the result. No album table in the sqllite3 yet.
-    return render_template("MainPage.html", albums=[
-                                                Album("Kuslar", 1),
-                                                Album("Hayvanlar",1),
-                                                Album("Bitkiler",2)
-                                                    ], owner=1)
+    return render_template("MainPage.html", albums=result, owner=1)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
