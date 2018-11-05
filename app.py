@@ -21,7 +21,7 @@ app = Flask(__name__)
 basedir = os.path.abspath(os.path.dirname(__file__))
 DB_URL = 'postgresql+psycopg2://{user}:{pw}@{url}/{db}'.format(user=POSTGRES_USER,pw=POSTGRES_PW,url=POSTGRES_URL,db=POSTGRES_DB)
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'bil495-abc.sqlite')
-#app.config['SQLALCHEMY_DATABASE_URI'] = DB_URL
+# app.config['SQLALCHEMY_DATABASE_URI'] = DB_URL
 app.config['SECRET_KEY'] = 'etu-abc-putbox'
 
 # IMAGE UPLOAD
@@ -171,19 +171,18 @@ def login():
     username = data['username']
     password = data['password']
     if not username or not password:
-        return make_response('Could not verify', 401, {'WWW-Authenticate' : 'Basic realm="Login required!"'})
+        return make_response('Could not verify', 401)
 
     user = Users.query.filter_by(username=username).first()
     print("\n",user.password," - ",user.username)
     if not user:
-        return make_response('Could not verify', 401, {'WWW-Authenticate' : 'Basic realm="Login required!"'})
-
+        return make_response('Could not verify', 401)
     if check_password_hash(user.password, password):
         token = jwt.encode({'userid' : user.user_id}, app.config['SECRET_KEY'])
         out = jsonify(success=True)
         out.set_cookie('token', token)
         return out
-    return make_response('Could not verify', 401, {'WWW-Authenticate' : 'Basic realm="Login required!"'})
+    return make_response('Could not verify', 401)
 
 
 @app.route('/', methods=['GET'])
