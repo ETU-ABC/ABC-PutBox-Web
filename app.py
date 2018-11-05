@@ -21,7 +21,7 @@ app = Flask(__name__)
 basedir = os.path.abspath(os.path.dirname(__file__))
 DB_URL = 'postgresql+psycopg2://{user}:{pw}@{url}/{db}'.format(user=POSTGRES_USER,pw=POSTGRES_PW,url=POSTGRES_URL,db=POSTGRES_DB)
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'bil495-abc.sqlite')
-app.config['SQLALCHEMY_DATABASE_URI'] = DB_URL
+#app.config['SQLALCHEMY_DATABASE_URI'] = DB_URL
 app.config['SECRET_KEY'] = 'etu-abc-putbox'
 
 # IMAGE UPLOAD
