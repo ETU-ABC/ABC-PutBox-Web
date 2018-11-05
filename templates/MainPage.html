@@ -39,21 +39,30 @@
   <h4 style="color:blue"> Your Album Feed </h4>
   <br>
 
- <!-- Albums list. -->
+  <!-- Albums list. -->
   <ul class="list-group">
   {% for album in albums %}
-    {% if album.owner == owner %}
-      <li class="list-group-item">
-        <div class="card col-md-4 offset-md-4" >
-          <img class="card-img-top" src="../static/photos/bird-photo 750 x 530" alt="Card image cap">
-          <div class="card-body">
-            <h5 class="card-title">{{album.id}}</h5>
-            <p class="card-text">{{album.name}}</p>
-            <a href="albums/"{{albums.id}} class="btn btn-primary">Go to Album</a>
-          </div>
+    <li class="list-group-item">
+      <div class="card col-md-6 offset-md-2" style="padding:3px">
+        <img class="card-img-top" src={{album.cover}} alt="Card image cap">
+        <div class="card-body">
+          <ul class="list-group">
+            <li class="list-group-item">
+              <p class="card-text">Album id: {{album.album_id}}</p>
+            </li>
+            <li class="list-group-item">
+              <p class="card-text">{{album.name}}</p>
+            </li>
+            <li class="list-group-item">
+              <p class="card-text">
+                <a onClick="goToAlbum()" class="btn btn-primary" id="go_to_album_button" value={{album.album_id}}>Go to Album</a>
+                <a class="btn btn-secondary" type="submit" id="delete_the_album_button" value={{album.album_id}}>Delete the Album</a>
+              </p>
+            </li>
+          </ul>
         </div>
-      </li>
-    {% endif %}
+      </div>
+    </li>
   {% endfor %}
   </ul>
 
@@ -81,6 +90,29 @@
     });
   }, false);
 })();
+
+function goToAlbum(){
+  var id = document.getElementById("go_to_album_button").getAttribute("value");
+  console.log("id: "+id);
+  window.location.assign("album/"+id);
+}
+
+$("#delete_the_album_button").click(function(e){
+        e.preventDefault();
+        var id = document.getElementById("go_to_album_button").getAttribute("value");
+        urlLink = "../album/"+id;
+        console.log("id: "+id);
+        $.ajax({
+            url: urlLink, // url where to submit the request
+            type : "DELETE", // type of action POST || GET
+            dataType : 'json', // data type
+            contentType: 'application/json',
+            data : "", // post data || get data
+            success : function(result) {
+                window.location.assign("/album");
+            }
+        })
+});
 
 </script>
 <script>
