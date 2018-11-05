@@ -4,17 +4,17 @@
 
 <div class="card col-md-4 offset-md-4">
   <img class="card-img-top" src={{photo.photo_path}} alt="Card image cap">
-  <p class="card-text" id="get_photo_id" value={{photo.photo_id}}>{{photo.photo_id}} ,,, Uploaded by {{photo.uploaded_by}} in {{photo.upload_date}}</p>
+  <p class="card-text" id="get_photo_id" value={{photo.photo_id}}>Photo Id: {{photo.photo_id}}<br> Uploaded in: {{photo.upload_date}}</p>
   <form class="needs-validation" id="add_form" name="add_form" method="post" novalidate>
-  <div class="form-row">
-    <div class="col-md-4 mb-3">
-      <input type="text" class="form-control" name="tag" id="validationCustom01" placeholder="Entry a new tag name" required>
-      <div class="invalid-feedback">
-        Please entry a tag name!
+    <div class="form-row">
+      <div class="col-md-4 mb-3">
+        <input type="text" class="form-control" name="tag" id="validationCustom01" placeholder="Entry tag name" required>
+        <div class="invalid-feedback">
+          Please enter a tag name!
+        </div>
       </div>
+    <button class="btn btn-primary" type="submit">Add tag</button>
     </div>
-  <button class="btn btn-primary" type="submit">Add tag</button>
-  </div>
   </form>
 
   <h3 style="color:blue">Your tag feed</h3>
@@ -39,7 +39,7 @@
 <script>
 
 $(document).ready(function(){
-  $("#add_form").click(function(e){
+  $("#add_form").submit(function(e){
     e.preventDefault();
 
     var value = document.getElementById("get_photo_id").getAttribute("value");
@@ -59,16 +59,16 @@ $(document).ready(function(){
 });
 
 $(document).ready(function(){
-  $("#delete_form").click(function(e){
+  $("#delete_form").submit(function(e){
     e.preventDefault();
 
     var value = document.getElementById("get_photo_id").getAttribute("value");
     var urlLink = '../photo/' + value + '/tag';
-    console.log(objectifyForm($("#delete_form")));
+    //console.log(objectifyForm($("#delete_form")));
 
     var tagValue = document.getElementById("validationCustom02").getAttribute("value");
     var val = { tag: tagValue };
-    console.log(val);
+    //console.log(val);
 
     $.ajax({
         url: urlLink, // url where to submit the request //TODO
@@ -77,7 +77,7 @@ $(document).ready(function(){
         contentType: 'application/json',
         data : JSON.stringify(val), // post data || get data
         success : function(result) {
-            window.location.assign("/album");
+            window.location.assign("/photo/"+value);
         }
     })
   });
@@ -88,7 +88,6 @@ function objectifyForm(form) {//serialize data function
   var data = {};
   var dataArray = form.serializeArray();
   for(var i=0;i<dataArray.length;i++){
-    console.log(dataArray[i].name + " , " + dataArray[i].value);
     data[dataArray[i].name] = dataArray[i].value;
   }
   return JSON.stringify(data);
@@ -96,4 +95,3 @@ function objectifyForm(form) {//serialize data function
 
 </script>
 {% endblock %}
-
