@@ -21,7 +21,7 @@ app = Flask(__name__)
 basedir = os.path.abspath(os.path.dirname(__file__))
 DB_URL = 'postgresql+psycopg2://{user}:{pw}@{url}/{db}'.format(user=POSTGRES_USER,pw=POSTGRES_PW,url=POSTGRES_URL,db=POSTGRES_DB)
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'bil495-abc.sqlite')
-# app.config['SQLALCHEMY_DATABASE_URI'] = DB_URL
+app.config['SQLALCHEMY_DATABASE_URI'] = DB_URL
 app.config['SECRET_KEY'] = 'etu-abc-putbox'
 
 # IMAGE UPLOAD
@@ -174,7 +174,7 @@ def login():
         return make_response('Could not verify', 401)
 
     user = Users.query.filter_by(username=username).first()
-    print("\n",user.password," - ",user.username)
+    #print("\n",user.password," - ",user.username)
     if not user:
         return make_response('Could not verify', 401)
     if check_password_hash(user.password, password):
@@ -195,12 +195,6 @@ def main_page():
     else:
         return getMainPage()
 
-
-
-    #if valid then user is already authenticated,
-    #return redirect("MainPage", code=302)  undo comment out when token check is implemented
-    #else redirect to login page
-    return redirect("login", code=302)
 
 
 # endpoint to user registeration
@@ -279,7 +273,7 @@ def get_photo():
 def photo_detail(current_user, id):
 
     photo = Photo.query.get(id)
-    print(current_user.user_id)
+    #print(current_user.user_id)
     #print(photo.tags)
 
     if photo.uploaded_by == current_user.user_id:
