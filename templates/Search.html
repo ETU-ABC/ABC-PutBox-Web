@@ -3,7 +3,7 @@
 {% block body %}
 
 
-<div class="container col-md-4 offset-md-4">
+<div class="container col-md-6 offset-md-3">
 
 
 
@@ -15,14 +15,15 @@
   <ul class="list-group">
   {% for photo in photos %}
       <li class="list-group-item">
-        <div class="card col-md-4 offset-md-4" >
+        <div class="card col-md-12" >
           <img class="card-img-top" src={{photo.photo_path}} alt="Card image cap">
           <div class="card-body">
+            <h3>Tags:</h3>
               {%  for tag in photo.tags %}
-                <h5 class="card-title">{{tag.tag_desc}}</h5>
+                <h5 class="card-title"><a href="/tag/{{tag.tag_desc}}">{{tag.tag_desc}}</a></h5>
               {% endfor %}
-            <p class="card-text">Uploaded by, {{photo.uploaded_by}} _ Date: {{photo.upload_date}}</p>
-{#            <a href="albums/"{{albums.id}} class="btn btn-primary">Go to Album</a>#}
+            <p class="card-text">Uploaded in: {{photo.upload_date}}</p>
+{#            <a href="albums/{{albums.id}}" class="btn btn-primary">Go to Album</a>#}
           </div>
         </div>
       </li>

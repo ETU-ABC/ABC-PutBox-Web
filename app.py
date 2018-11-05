@@ -275,11 +275,13 @@ def photo_detail(current_user, id):
     photo = Photo.query.get(id)
     #print(current_user.user_id)
     #print(photo.tags)
-
-    if photo.uploaded_by == current_user.user_id:
+    if photo is None:
+        return redirect("/", code=302)
+    elif photo.uploaded_by == current_user.user_id:
         return render_template("PhotoPage.html", photo=photo)
     else:
-        return make_response(jsonify({"error": "You have not permission to view the photo!"}), 401)
+        return redirect("/", code=302)
+        #return make_response(jsonify({"error": "You have not permission to view the photo!"}), 401)
 
 
 # endpoint to delete photo
