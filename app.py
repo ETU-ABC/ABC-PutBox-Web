@@ -43,9 +43,9 @@ class DateTimeEncoder(json.JSONEncoder):
 
 class Users(db.Model):
     user_id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True)
-    email = db.Column(db.String(120), unique=True)
-    password = db.Column(db.String(20))
+    username = db.Column(db.String, unique=True)
+    email = db.Column(db.String, unique=True)
+    password = db.Column(db.String)
     register_date = db.Column(db.DateTime)
     albums = relationship('Album')
 
@@ -69,7 +69,7 @@ users_schema = UserSchema(many=True)
 
 class Photo(db.Model):
     photo_id = db.Column(db.Integer, primary_key=True)
-    photo_path = db.Column(db.String(150), unique=True)
+    photo_path = db.Column(db.String, unique=True)
     upload_date = db.Column(db.DateTime)
     uploaded_by = db.Column(db.Integer, db.ForeignKey('users.user_id'))
     tags = relationship("Tag")
@@ -95,7 +95,7 @@ photos_schema = PhotoSchema(many=True)
 class Tag(db.Model):
     tag_id = db.Column(db.Integer, primary_key=True)
     photo_id = db.Column(db.Integer, db.ForeignKey('photo.photo_id'))
-    tag_desc = db.Column(db.String(50))
+    tag_desc = db.Column(db.String)
 
     def __init__(self, photo_id, tag_desc):
         self.photo_id = photo_id
@@ -113,7 +113,7 @@ tags_schema = TagSchema(many=True)
 
 class Album(db.Model):
     album_id = db.Column(db.Integer, primary_key=True)
-    album_name = db.Column(db.String(30), unique=True)
+    album_name = db.Column(db.String, unique=True)
     owner = db.Column(db.Integer, db.ForeignKey('users.user_id'))
     # TODO album cover is set to first photo in the album
     # cover = db.Column(Integer, ForeignKey('photo.photo_id'))
