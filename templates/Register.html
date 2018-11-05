@@ -51,6 +51,7 @@
                 contentType: 'application/json',
                 data : objectifyForm($("#form")), // post data || get data
                 success : function(result) {
+                    window.alert("Successfully registered, redirecting to login page.");
                     window.location.assign("/");
                 }
             })
