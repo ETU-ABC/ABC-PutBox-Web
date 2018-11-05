@@ -6,31 +6,26 @@
 <div class="container col-md-4 offset-md-4">
 
   <br><br><br>
-  <h3>If you want to add a Photo</h3>
-  <form method="POST" class="needs-validation" novalidate>
-    <div class="form-row">
-      <div class="col-md-4 mb-3">
-        <input type="text" class="form-control" id="validationCustom01" placeholder="Entry an photo description" required>
-        <div class="invalid-feedback">
-          Please entry a description!
-        </div>
-      </div>
-      </div>
+  <h4>If you want to add a Photo</h4>
+  <br>
 
-    <div class="form-group">
-      <div class="form-check">
-        <input class="form-check-input" type="checkbox" value="" id="invalidCheck" required>
-        <div class="invalid-feedback">
-          Please really agree.
+
+  <form class="needs-validation" id="form" name="form" method="post" action="/photo" enctype="multipart/form-data">
+    <div class="input-group">
+        <div class="custom-file">
+           <input type="hidden" name="album_id" value="{{album_id}}" name="hidden_id">
+           <input type="file" name="photo" id="photo"  class="filestyle" data-classButton="btn btn-primary" data-input="false" data-classIcon="icon-plus" data-buttonText="Choose file">
         </div>
-      </div>
+        <div class="input-group-append">
+            <button class="btn btn-primary" type="submit">Add photo</button>
+        </div>
     </div>
-    <button class="btn btn-primary" type="submit">Submit form</button>
   </form>
 
   <br>
-  <hr>
-  <h4 style="color:blue"> Your Photo Feed in Album id: {{owner_album}}</h4>
+  <hr style="color:#639fff">
+  <br>
+  <h4 style="color:#639fff"> Your Photo Feed in Album id: {{owner_album}}</h4>
   <br>
 
  <!-- Albums list. -->
@@ -45,7 +40,7 @@
                 <h5 class="card-title">{{tag.tag_desc}}</h5>
             {% endfor %}
             <p class="card-text">Uploaded by, {{photo.uploaded_by}} _ Date: {{photo.upload_date}}</p>
-            <a href="albums/"{{albums.id}} class="btn btn-primary">Go to Album</a>
+            <a href="albums/"{{photo.album_id}} class="btn btn-primary">Go to Photo</a>
           </div>
         </div>
       </li>
@@ -77,6 +72,24 @@
     });
   }, false);
 })();
+</script>
+
+<script>
+
+$('#file-upload').change(function() {
+  var i = $(this).prev('label').clone();
+  var file = $('#file-upload')[0].files[0].name;
+  $(this).prev('label').text(file);
+});
+
+function objectifyForm(form) {//serialize data function
+  var data = {};
+  var dataArray = form.serializeArray();
+  for(var i=0;i<dataArray.length;i++){
+    data[dataArray[i].name] = dataArray[i].value;
+  }
+  return JSON.stringify(data);
+}
 
 </script>
 

@@ -243,13 +243,13 @@ def get_user():
 @app.route("/photo", methods=["POST"])
 @token_required
 def add_photo(current_user):
-    # if 'photo' in request.files:
-    #     filename = PHOTOS.save(request.files['photo'])
-    #     photo_path = PHOTOS.path(filename)
-    # else:
-    #     return "No image found!", 415
-    photo_path = request.json['photo_path']
-    album_id = request.json['album_id']
+    if 'photo' in request.files:
+        filename = PHOTOS.save(request.files['photo'])
+        photo_path = PHOTOS.path(filename)
+    else:
+        return "No image found!", 415
+    data = request.form.to_dict()
+    album_id = data['album_id']
     uploaded_by = current_user.user_id
     photo_path = "../../" + photo_path
     new_photo = Photo(photo_path, uploaded_by, album_id)
@@ -257,7 +257,7 @@ def add_photo(current_user):
     db.session.add(new_photo)
     db.session.commit()
 
-    return photo_schema.jsonify(new_photo)
+    return redirect("/album/"+album_id, code=302)
 
 
 # endpoint to show all photos of the user
