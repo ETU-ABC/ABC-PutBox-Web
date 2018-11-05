@@ -4,8 +4,7 @@
 
 <div class="card col-md-4 offset-md-4">
   <img class="card-img-top" src={{photo.photo_path}} alt="Card image cap">
-  <p class="card-text" id="get_photo_id" value={{photo.photo_id}}>Uploaded by {{photo.uploaded_by}} in {{photo.upload_date}}</p>
-
+  <p class="card-text" id="get_photo_id" value={{photo.photo_id}}>{{photo.photo_id}} ,,, Uploaded by {{photo.uploaded_by}} in {{photo.upload_date}}</p>
   <form class="needs-validation" id="add_form" name="add_form" method="post" novalidate>
   <div class="form-row">
     <div class="col-md-4 mb-3">
@@ -23,12 +22,12 @@
     {%  for tag in photo.tags %}
       <li class = "list-group-item">
         <form class="needs-validation" id="delete_form" name="delete_form" method="post" novalidate>
-        <div class="form-row">
-          <div class="col-md-4 mb-3">
-            <p class="card-text" name="tag" id="validationCustom02" value={{tag.tag_desc}}>{{tag.tag_desc}}</p>
-          </div>
-        <button class="btn btn-primary" type="submit">Delete the tag</button>
-        </div>
+            <div class="form-row">
+              <div class="col-md-4 mb-3">
+                <p class="card-text" name="tag" id="validationCustom02" value={{tag.tag_desc}}>{{tag.tag_desc}}</p>
+              </div>
+            <button class="btn btn-primary" type="submit">Delete the tag</button>
+            </div>
         </form>
       </li>
     {% endfor %}
@@ -43,14 +42,17 @@ $(document).ready(function(){
   $("#add_form").click(function(e){
     e.preventDefault();
 
+    var value = document.getElementById("get_photo_id").getAttribute("value");
+    var urlLink = '../photo/' + value + '/tag';
+
     $.ajax({
-        url: '../photo/1/tag', // url where to submit the request //TODO
+        url: urlLink, // url where to submit the request //TODO
         type : "POST", // type of action is POST || GET
         dataType : 'json', // data type
         contentType: 'application/json',
         data : objectifyForm($("#add_form")), // post data || get data
         success : function(result) {
-            window.location.assign("/photo/1"); //TODO
+            location.reload();
         }
     })
   });
@@ -60,23 +62,33 @@ $(document).ready(function(){
   $("#delete_form").click(function(e){
     e.preventDefault();
 
+    var value = document.getElementById("get_photo_id").getAttribute("value");
+    var urlLink = '../photo/' + value + '/tag';
+    console.log(objectifyForm($("#delete_form")));
+
+    var tagValue = document.getElementById("validationCustom02").getAttribute("value");
+    var val = { tag: tagValue };
+    console.log(val);
+
     $.ajax({
-        url: '../photo/1/tag', // url where to submit the request //TODO
+        url: urlLink, // url where to submit the request //TODO
         type : "DELETE", // type of action is DELETE
         dataType : 'json', // data type
         contentType: 'application/json',
-        data : objectifyForm($("#delete_form")), // post data || get data
+        data : JSON.stringify(val), // post data || get data
         success : function(result) {
-            window.location.assign("/photo/1"); //TODO
+            window.location.assign("/album");
         }
     })
   });
 });
 
+
 function objectifyForm(form) {//serialize data function
   var data = {};
   var dataArray = form.serializeArray();
   for(var i=0;i<dataArray.length;i++){
+    console.log(dataArray[i].name + " , " + dataArray[i].value);
     data[dataArray[i].name] = dataArray[i].value;
   }
   return JSON.stringify(data);
@@ -84,3 +96,4 @@ function objectifyForm(form) {//serialize data function
 
 </script>
 {% endblock %}
+

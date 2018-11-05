@@ -187,21 +187,25 @@ def main_page():
     #return redirect("MainPage", code=302)  undo comment out when token check is implemented
     #else redirect to login page
     return redirect("login", code=302)
+
+
 # endpoint to user registeration
 @app.route("/register", methods=["GET"])
 def getRegisterPage():
     return render_template("Register.html");
+
 
 # endpoint to user login
 @app.route("/login", methods=["GET"])
 def getLoginPage():
     return render_template("Login.html");
 
+
 # endpoint to create new user
 @app.route("/users/signup", methods=["POST"])
 def add_user():
-    data= request.json
-    username= data['username']
+    data=request.json
+    username=data['username']
     email = data['email']
     password = data['password']
     hashed_password=generate_password_hash(password, method='sha256')
@@ -260,12 +264,13 @@ def get_photo():
 def photo_detail(current_user, id):
 
     photo = Photo.query.get(id)
-    print(photo.tags)
+    print(current_user.user_id)
+    #print(photo.tags)
 
     if photo.uploaded_by == current_user.user_id:
-        return photo_schema.jsonify(photo)
+        return render_template("PhotoPage.html", photo=photo)
     else:
-        return make_response(jsonify({"error":"You have not permission to view the photo!"}), 401)
+        return make_response(jsonify({"error": "You have not permission to view the photo!"}), 401)
 
 
 # endpoint to delete photo
@@ -366,7 +371,8 @@ def get_album(current_user, id):
             .filter(Photo.album_id == id)
     result = photos_schema.dumps(photos)
     res = json.loads(result.data)
-    return render_template("AlbumPage.html", photos=res, owner_album=current_user.username)
+    return render_template("AlbumPage.html", album_id=id,photos=res, owner_album=current_user.username)
+
 
 # endpoint to update album
 @app.route("/album/<id>", methods=["PUT"])
