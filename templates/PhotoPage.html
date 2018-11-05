@@ -2,7 +2,7 @@
 
 {% block body %}
 
-<div class="card col-md-4 offset-md-4">
+<div class="card col-md-6 offset-md-3">
   <img class="card-img-top" src={{photo.photo_path}} alt="Card image cap">
   <p class="card-text" id="get_photo_id" value={{photo.photo_id}}>Photo Id: {{photo.photo_id}}<br> Uploaded in: {{photo.upload_date}}</p>
   <form class="needs-validation" id="add_form" name="add_form" method="post" novalidate>
@@ -24,9 +24,9 @@
         <form class="needs-validation" id="delete_form" name="delete_form" method="post" novalidate>
             <div class="form-row">
               <div class="col-md-4 mb-3">
-                <p class="card-text" name="tag" id="validationCustom02" value={{tag.tag_desc}}>{{tag.tag_desc}}</p>
+                <p class="card-text" name="tag" id="validationCustom02" value={{tag.tag_desc}}><a href="/tag/{{tag.tag_desc}}">{{tag.tag_desc}}</a></p>
               </div>
-            <button class="btn btn-primary" type="submit">Delete the tag</button>
+            <!--button class="btn btn-primary" type="submit">Delete the tag</button-->
             </div>
         </form>
       </li>
