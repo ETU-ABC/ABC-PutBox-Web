@@ -12,10 +12,10 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_heroku import Heroku
 
 # the values of those depend on your setup
-POSTGRES_URL = "127.0.0.1:5432"
-POSTGRES_USER = "postgres"
-POSTGRES_PW = "123456"
-POSTGRES_DB = "testuser"
+POSTGRES_URL = "ec2-54-228-181-43.eu-west-1.compute.amazonaws.com:5432"
+POSTGRES_USER = "bhywntahknhkfs"
+POSTGRES_PW = "4c47fe4a36b1fcd559b17aa5fd88618d9dd7765467de6c78ec9e5ff8599ccf81"
+POSTGRES_DB = "d277ase0i9t3ct"
 
 app = Flask(__name__)
 basedir = os.path.abspath(os.path.dirname(__file__))

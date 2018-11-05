@@ -43,7 +43,7 @@
               <div class="btn-group">
                 <p class="card-text">
 
-                  <a onClick="goToAlbum()" class="btn btn-primary btn-lg" id="go_to_album_button" value={{album.album_id}}>Go to Album</a>
+                  <a href="/album/{{album.album_id}}" class="btn btn-primary btn-lg" id="go_to_album_button">Go to Album : {{album.album_id}}</a>
                   <a class="btn btn-danger btn-lg " type="submit" id="delete_the_album_button" value={{album.album_id}}>Delete the Album</a>
                 </p>
               </div>
@@ -81,11 +81,7 @@
   }, false);
 })();
 
-function goToAlbum(){
-  var id = document.getElementById("go_to_album_button").getAttribute("value");
-  console.log("id: "+id);
-  window.location.assign("album/"+id);
-}
+
 
 $("#delete_the_album_button").click(function(e){
         e.preventDefault();

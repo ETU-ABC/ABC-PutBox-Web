@@ -35,15 +35,17 @@
         <div class="card col-md-12" >
           <img class="card-img-top" src={{photo.photo_path}} alt="Card image cap">
           <div class="card-body">
+            <h4>Tags</h4>
             {%  for tag in photo.tags %}
-                <h5 class="card-title">{{tag.tag_desc}}</h5>
+              <h5 class="card-title"><a href="/tag/{{tag.tag_desc}}">{{tag.tag_desc}}</a></h5>
             {% endfor %}
             <p class="card-text">Date: {{photo.upload_date}}</p>
-            <a href="albums/"{{photo.album_id}} class="btn btn-primary">Go to Photo</a>
+            <a href="../photo/{{photo.photo_id}}" id="go_to_photo_button" value={{photo.photo_id}} class="btn btn-primary">Go to Photo</a>
+            <br><hr><br>
+            <button class="btn btn-light" type="submit" onClick="deletePhoto()" id="delete_the_photo_button" value={{photo.photo_id}}>Delete the Photo</button>
           </div>
         </div>
       </li>
-
   {% endfor %}
   </ul>
 
@@ -74,6 +76,23 @@
 </script>
 
 <script>
+
+
+function deletePhoto(){
+    var id = document.getElementById("delete_the_photo_button").getAttribute("value");
+    var varLink = '../photo/' + id;
+
+    $.ajax({
+        url: varLink, // url where to submit the request
+        type : "DELETE", // type of action POST || GET
+        dataType : 'json', // data type
+        contentType: 'application/json',
+        data : objectifyForm($("#form")), // post data || get data
+        success : function(result) {
+          location.reload();
+        }
+    })
+}
 
 $('#file-upload').change(function() {
   var i = $(this).prev('label').clone();
