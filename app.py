@@ -242,7 +242,7 @@ def add_photo(current_user):
     db.session.add(new_photo)
     db.session.commit()
 
-    return photo_schema.jsonify(new_photo)
+    return redirect("/album/"+album_id, code=302)
 
 
 # endpoint to show all photos of the user
