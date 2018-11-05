@@ -233,7 +233,8 @@ def add_photo(current_user):
         photo_path = PHOTOS.path(filename)
     else:
         return "No image found!", 415
-    album_id = request.json['album_id']
+    data = request.form.to_dict()
+    album_id = data['album_id']
     uploaded_by = current_user.user_id
     photo_path = "../../" + photo_path
     new_photo = Photo(photo_path, uploaded_by, album_id)
