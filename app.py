@@ -9,11 +9,19 @@ import json
 from functools import wraps
 from flask_uploads import UploadSet, configure_uploads, IMAGES
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_heroku import Heroku
 
+# the values of those depend on your setup
+POSTGRES_URL = "127.0.0.1:5432"
+POSTGRES_USER = "postgres"
+POSTGRES_PW = "123456"
+POSTGRES_DB = "testuser"
 
 app = Flask(__name__)
 basedir = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'bil495-abc.sqlite')
+DB_URL = 'postgresql+psycopg2://{user}:{pw}@{url}/{db}'.format(user=POSTGRES_USER,pw=POSTGRES_PW,url=POSTGRES_URL,db=POSTGRES_DB)
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'bil495-abc.sqlite')
+app.config['SQLALCHEMY_DATABASE_URI'] = DB_URL
 app.config['SECRET_KEY'] = 'etu-abc-putbox'
 
 # IMAGE UPLOAD
@@ -22,11 +30,18 @@ PHOTOS = UploadSet('photos', IMAGES)
 app.config['UPLOADED_PHOTOS_DEST'] = 'static/photos'
 configure_uploads(app, PHOTOS)
 
+heroku = Heroku(app)
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
 
+class DateTimeEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, datetime):
+            return o.isoformat()
 
-class User(db.Model):
+        return json.JSONEncoder.default(self, o)
+
+class Users(db.Model):
     user_id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True)
     email = db.Column(db.String(120), unique=True)
@@ -56,7 +71,7 @@ class Photo(db.Model):
     photo_id = db.Column(db.Integer, primary_key=True)
     photo_path = db.Column(db.String(150), unique=True)
     upload_date = db.Column(db.DateTime)
-    uploaded_by = db.Column(db.Integer, db.ForeignKey('user.user_id'))
+    uploaded_by = db.Column(db.Integer, db.ForeignKey('users.user_id'))
     tags = relationship("Tag")
     album_id = db.Column(db.Integer, db.ForeignKey('album.album_id'))
 
@@ -99,7 +114,7 @@ tags_schema = TagSchema(many=True)
 class Album(db.Model):
     album_id = db.Column(db.Integer, primary_key=True)
     album_name = db.Column(db.String(30), unique=True)
-    owner = db.Column(db.Integer, db.ForeignKey('user.user_id'))
+    owner = db.Column(db.Integer, db.ForeignKey('users.user_id'))
     # TODO album cover is set to first photo in the album
     # cover = db.Column(Integer, ForeignKey('photo.photo_id'))
     photos = relationship("Photo")
@@ -144,7 +159,7 @@ def token_required(f):
 def validate_token(token):
     try:
         data = jwt.decode(token, app.config['SECRET_KEY'])
-        current_user = User.query.filter_by(user_id=data['userid']).first()
+        current_user = Users.query.filter_by(user_id=data['userid']).first()
         return current_user
     except:
         return None
@@ -158,7 +173,7 @@ def login():
     if not username or not password:
         return make_response('Could not verify', 401, {'WWW-Authenticate' : 'Basic realm="Login required!"'})
 
-    user = User.query.filter_by(username=username).first()
+    user = Users.query.filter_by(username=username).first()
     print("\n",user.password," - ",user.username)
     if not user:
         return make_response('Could not verify', 401, {'WWW-Authenticate' : 'Basic realm="Login required!"'})
@@ -209,7 +224,7 @@ def add_user():
     email = data['email']
     password = data['password']
     hashed_password=generate_password_hash(password, method='sha256')
-    new_user = User(username, email, hashed_password)
+    new_user = Users(username, email, hashed_password)
 
     db.session.add(new_user)
     db.session.commit()
@@ -219,7 +234,7 @@ def add_user():
 # endpoint to show all users
 @app.route("/user", methods=["GET"])
 def get_user():
-    all_users = User.query.all()
+    all_users = Users.query.all()
     result = users_schema.dump(all_users)
     return jsonify(result.data)
 
@@ -228,11 +243,12 @@ def get_user():
 @app.route("/photo", methods=["POST"])
 @token_required
 def add_photo(current_user):
-    if 'photo' in request.files:
-        filename = PHOTOS.save(request.files['photo'])
-        photo_path = PHOTOS.path(filename)
-    else:
-        return "No image found!", 415
+    # if 'photo' in request.files:
+    #     filename = PHOTOS.save(request.files['photo'])
+    #     photo_path = PHOTOS.path(filename)
+    # else:
+    #     return "No image found!", 415
+    photo_path = request.json['photo_path']
     album_id = request.json['album_id']
     uploaded_by = current_user.user_id
     photo_path = "../../" + photo_path
