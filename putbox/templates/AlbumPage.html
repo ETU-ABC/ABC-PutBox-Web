@@ -1,0 +1,114 @@
+{% extends 'Layout.html' %}
+
+{% block body %}
+
+
+<div class="container col-md-6 offset-md-3">
+
+  <br><br><br>
+  <h4>If you want to add a Photo</h4>
+  <br>
+
+
+  <form class="needs-validation" id="form" name="form" method="post" action="/photo" enctype="multipart/form-data">
+    <div class="input-group">
+        <div class="custom-file">
+           <input type="hidden" name="album_id" value="{{album_id}}" name="hidden_id">
+           <input type="file" name="photo" id="photo"  class="filestyle" data-classButton="btn btn-primary" data-input="false" data-classIcon="icon-plus" data-buttonText="Choose file">
+        </div>
+        <div class="input-group-append">
+            <button class="btn btn-primary" type="submit">Add photo</button>
+        </div>
+    </div>
+  </form>
+
+  <br>
+  <hr style="color:#639fff">
+  <br>
+  <h4 style="color:#639fff"> Your Photo Feed in Album id: {{album_id}}</h4>
+  <br>
+
+ <!-- Albums list. -->
+  <ul class="list-group">
+  {% for photo in photos %}
+      <li class="list-group-item">
+        <div class="card col-md-12" >
+          <img class="card-img-top" src={{photo.photo_path}} alt="Card image cap">
+          <div class="card-body">
+            <h4>Tags</h4>
+            {%  for tag in photo.tags %}
+              <h5 class="card-title"><a href="/tag/{{tag.tag_desc}}">{{tag.tag_desc}}</a></h5>
+            {% endfor %}
+            <p class="card-text">Date: {{photo.upload_date}}</p>
+            <a href="../photo/{{photo.photo_id}}" id="go_to_photo_button" value={{photo.photo_id}} class="btn btn-primary">Go to Photo</a>
+            <br><hr><br>
+            <!--button class="btn btn-light" type="submit" onClick="deletePhoto()" id="delete_the_photo_button" value={{photo.photo_id}}>Delete the Photo</button-->
+          </div>
+        </div>
+      </li>
+  {% endfor %}
+  </ul>
+
+</div>
+
+
+
+<script>
+
+// For disabling form submissions if there are invalid fields
+(function() {
+  'use strict';
+  window.addEventListener('load', function() {
+    // Fetch all the forms we want to apply custom Bootstrap validation styles to
+    var forms = document.getElementsByClassName('needs-validation');
+    // Loop over them and prevent submission
+    var validation = Array.prototype.filter.call(forms, function(form) {
+      form.addEventListener('submit', function(event) {
+        if (form.checkValidity() === false) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+      }, false);
+    });
+  }, false);
+})();
+</script>
+
+<script>
+
+
+function deletePhoto(){
+    var id = document.getElementById("delete_the_photo_button").getAttribute("value");
+    var varLink = '../photo/' + id;
+
+    $.ajax({
+        url: varLink, // url where to submit the request
+        type : "DELETE", // type of action POST || GET
+        dataType : 'json', // data type
+        contentType: 'application/json',
+        data : objectifyForm($("#form")), // post data || get data
+        success : function(result) {
+          location.reload();
+        }
+    })
+}
+
+$('#file-upload').change(function() {
+  var i = $(this).prev('label').clone();
+  var file = $('#file-upload')[0].files[0].name;
+  $(this).prev('label').text(file);
+});
+
+function objectifyForm(form) {//serialize data function
+  var data = {};
+  var dataArray = form.serializeArray();
+  for(var i=0;i<dataArray.length;i++){
+    data[dataArray[i].name] = dataArray[i].value;
+  }
+  return JSON.stringify(data);
+}
+
+</script>
+
+{% endblock %}

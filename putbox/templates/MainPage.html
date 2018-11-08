@@ -1,0 +1,130 @@
+{% extends 'Layout.html' %}
+
+{% block body %}
+
+<div class="container col-md-8 offset-md-2 " >
+
+  <br><br><br>
+  <h3>If you want to create an album</h3>
+  <form class="needs-validation" id="form" name="form" method="post" novalidate>
+    <div class="form-row">
+      <div class="col-md-4 mb-3">
+        <input type="text" class="form-control" name="album_name" id="validationCustom01" placeholder="Entry an album name" required>
+        <div class="valid-feedback">
+          Good album name!
+        </div>
+        <div class="invalid-feedback">
+          Please entry an album name!
+        </div>
+      </div>
+
+      </div>
+
+    <button class="btn btn-primary" type="submit">Submit form</button>
+  </form>
+
+  <br>
+  <hr>
+  <h4 style="color:blue"> Your Album Feed </h4>
+  <br>
+
+  <!-- Albums list. -->
+  <ul class="list-group ">
+  {% for album in albums %}
+    <li class="list-group-item">
+      <div class="card col-md-6 offset-md-3 " style="padding:3px">
+        <img class="card-img-top" src="{{album.cover}}" >
+        <div class="card-body">
+          <ul class="list-group">
+            <li class="list-group-item">
+              <p class="card-text">Album Name: {{album.album_name}}</p>
+            </li>
+            <li class="list-group-item">
+              <div class="btn-group">
+                <p class="card-text">
+
+                  <a href="/album/{{album.album_id}}" class="btn btn-primary btn-lg" id="go_to_album_button">Go to Album : {{album.album_id}}</a>
+                  <!--a class="btn btn-danger btn-lg " type="submit" id="delete_the_album_button" value={{album.album_id}}>Delete the Album</a-->
+                </p>
+              </div>
+
+            </li>
+          </ul>
+        </div>
+      </div>
+    </li>
+  {% endfor %}
+  </ul>
+
+</div>
+
+
+
+<script>
+
+// For disabling form submissions if there are invalid fields
+(function() {
+  'use strict';
+  window.addEventListener('load', function() {
+    // Fetch all the forms we want to apply custom Bootstrap validation styles to
+    var forms = document.getElementsByClassName('needs-validation');
+    // Loop over them and prevent submission
+    var validation = Array.prototype.filter.call(forms, function(form) {
+      form.addEventListener('submit', function(event) {
+        if (form.checkValidity() === false) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+      }, false);
+    });
+  }, false);
+})();
+
+
+
+$("#delete_the_album_button").click(function(e){
+        e.preventDefault();
+        var id = document.getElementById("go_to_album_button").getAttribute("value");
+        urlLink = "../album/"+id;
+        console.log("id: "+id);
+        $.ajax({
+            url: urlLink, // url where to submit the request
+            type : "DELETE", // type of action POST || GET
+            dataType : 'json', // data type
+            contentType: 'application/json',
+            data : "", // post data || get data
+            success : function(result) {
+                window.location.assign("/album");
+            }
+        })
+});
+
+</script>
+<script>
+  function objectifyForm(form) {//serialize data function
+    var data = {};
+    var dataArray = form.serializeArray();
+    for(var i=0;i<dataArray.length;i++){
+      data[dataArray[i].name] = dataArray[i].value;
+    }
+    return JSON.stringify(data);
+  }
+  $(document).ready(function(){
+      $("#form").on('submit', function(e){
+        e.preventDefault();
+          $.ajax({
+              url: '../album', // url where to submit the request
+              type : "POST", // type of action POST || GET
+              dataType : 'json', // data type
+              contentType: 'application/json',
+              data : objectifyForm($("#form")), // post data || get data
+              success : function(result) {
+                  window.location.assign("/album");
+              }
+          })
+      });
+  });
+</script>
+
+{% endblock %}

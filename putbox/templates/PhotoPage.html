@@ -1,0 +1,97 @@
+{% extends 'Layout.html' %}
+
+{% block body %}
+
+<div class="card col-md-6 offset-md-3">
+  <img class="card-img-top" src={{photo.photo_path}} alt="Card image cap">
+  <p class="card-text" id="get_photo_id" value={{photo.photo_id}}>Photo Id: {{photo.photo_id}}<br> Uploaded in: {{photo.upload_date}}</p>
+  <form class="needs-validation" id="add_form" name="add_form" method="post" novalidate>
+    <div class="form-row">
+      <div class="col-md-4 mb-3">
+        <input type="text" class="form-control" name="tag" id="validationCustom01" placeholder="Entry tag name" required>
+        <div class="invalid-feedback">
+          Please enter a tag name!
+        </div>
+      </div>
+    <button class="btn btn-primary" type="submit">Add tag</button>
+    </div>
+  </form>
+
+  <h3 style="color:blue">Your tag feed</h3>
+    <ul class="list-group">
+    {%  for tag in photo.tags %}
+      <li class = "list-group-item">
+        <form class="needs-validation" id="delete_form" name="delete_form" method="post" novalidate>
+            <div class="form-row">
+              <div class="col-md-4 mb-3">
+                <p class="card-text" name="tag" id="validationCustom02" value={{tag.tag_desc}}><a href="/tag/{{tag.tag_desc}}">{{tag.tag_desc}}</a></p>
+              </div>
+            <!--button class="btn btn-primary" type="submit">Delete the tag</button-->
+            </div>
+        </form>
+      </li>
+    {% endfor %}
+    </ul>
+  </div>
+
+</div>
+
+<script>
+
+$(document).ready(function(){
+  $("#add_form").submit(function(e){
+    e.preventDefault();
+
+    var value = document.getElementById("get_photo_id").getAttribute("value");
+    var urlLink = '../photo/' + value + '/tag';
+
+    $.ajax({
+        url: urlLink, // url where to submit the request //TODO
+        type : "POST", // type of action is POST || GET
+        dataType : 'json', // data type
+        contentType: 'application/json',
+        data : objectifyForm($("#add_form")), // post data || get data
+        success : function(result) {
+            location.reload();
+        }
+    })
+  });
+});
+
+$(document).ready(function(){
+  $("#delete_form").submit(function(e){
+    e.preventDefault();
+
+    var value = document.getElementById("get_photo_id").getAttribute("value");
+    var urlLink = '../photo/' + value + '/tag';
+    //console.log(objectifyForm($("#delete_form")));
+
+    var tagValue = document.getElementById("validationCustom02").getAttribute("value");
+    var val = { tag: tagValue };
+    //console.log(val);
+
+    $.ajax({
+        url: urlLink, // url where to submit the request //TODO
+        type : "DELETE", // type of action is DELETE
+        dataType : 'json', // data type
+        contentType: 'application/json',
+        data : JSON.stringify(val), // post data || get data
+        success : function(result) {
+            window.location.assign("/photo/"+value);
+        }
+    })
+  });
+});
+
+
+function objectifyForm(form) {//serialize data function
+  var data = {};
+  var dataArray = form.serializeArray();
+  for(var i=0;i<dataArray.length;i++){
+    data[dataArray[i].name] = dataArray[i].value;
+  }
+  return JSON.stringify(data);
+}
+
+</script>
+{% endblock %}
