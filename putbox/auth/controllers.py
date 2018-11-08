@@ -39,7 +39,7 @@ def login():
         out = jsonify(success=True)
         out.set_cookie('token', token)
         return out
-    return make_response('Username or password is incorrect', 401)
+    return make_response('Password is incorrect', 401)
 
 
 # endpoint to create new user
