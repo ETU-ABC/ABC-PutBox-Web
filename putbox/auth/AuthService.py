@@ -18,8 +18,8 @@ class Auth():
                 return jsonify({'message' : 'Token is missing!'}), 401
 
             try:
-                user_id = jwt.decode(token, app.config['SECRET_KEY'])
-                current_user = Users.query.filter_by(user_id=user_id).first()
+                data = jwt.decode(token, app.config['SECRET_KEY'])
+                current_user = Users.query.filter_by(user_id=data['userid']).first()
                 return f(current_user, *args, **kwargs)
             except jwt.ExpiredSignature:
                 return 'Signature expired. Please log in again.'
