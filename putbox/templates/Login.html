@@ -44,7 +44,7 @@
           $("#form").on('submit', function(e){
             e.preventDefault();
             $.ajax({
-                url: '../login', // url where to submit the request
+                url: '../auth/login', // url where to submit the request
                 type : "POST", // type of action POST || GET
                 dataType : 'json', // data type
                 contentType: 'application/json',

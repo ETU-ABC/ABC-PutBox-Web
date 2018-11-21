@@ -24,6 +24,16 @@ mod_auth = Blueprint('auth', __name__, url_prefix='/auth')
 
 
 # Set the route and accepted methods
+@mod_auth.route('/login', methods=['GET'])
+def login_page():
+    return render_template('Login.html')
+
+
+@mod_auth.route('/register', methods=['GET'])
+def register_page():
+    return render_template('Register.html')
+
+
 @mod_auth.route('/login', methods=['POST'])
 def login():
     data = request.json
