@@ -19,6 +19,9 @@ from putbox.auth.models import Users
 # Marshmallow schemas for users
 from putbox.auth.schemas import user_schema, users_schema
 
+# Import auth service
+from putbox.auth.AuthService import Auth
+
 # Define the blueprint: 'auth', set its url prefix: app.url/auth
 mod_auth = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -65,3 +68,35 @@ def add_user():
     db.session.add(new_user)
     db.session.commit()
     return user_schema.jsonify(new_user)
+
+
+# Configuration for user settings
+mod_user = Blueprint('user', __name__, url_prefix="/user")
+
+
+# define endpoint for configuration settings
+@mod_user.route('/settings', methods=['GET'])
+@Auth.token_required
+def user_settings(current_user):
+    time_to_delete = current_user.auto_delete_time
+    # TODO make sure the template page exists
+    # returns -1 if not set explicitly
+    # front end must handle this
+    return render_template("Settings.html", time_to_delete=time_to_delete)
+
+
+@mod_user.route('/settings', methods=['POST'])
+@Auth.token_required
+def update_user_settings(current_user):
+    time_input = 0
+    if 'time_to_auto_del' in request.json:
+        time_input = request.json['time_to_auto_del']
+
+    # TODO check if time_input is number
+
+    if time_input.isnumeric() and time_input > 0:
+        current_user.auto_delete_time = time_input
+        db.session.commit()
+    else:
+        return "time_input should be positive value"
+    return current_user

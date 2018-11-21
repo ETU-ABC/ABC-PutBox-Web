@@ -20,7 +20,7 @@ ma = Marshmallow(app)
 
 
 # Sample HTTP error handling
-@app.errorhandler(404)
+# @app.errorhandler(404)
 def not_found(error):
     # return render_template('404.html'), 404
     return render_template('Login.html')
@@ -30,11 +30,13 @@ def not_found(error):
 from putbox.auth.controllers import mod_auth as auth_module
 from putbox.photos.controllers import mod_photo as photo_module
 from putbox.albums.controllers import mod_album as album_module
+from putbox.auth.controllers import mod_user as user_module
 
 # Register blueprint(s)
 app.register_blueprint(auth_module)
 app.register_blueprint(photo_module)
 app.register_blueprint(album_module)
+app.register_blueprint(user_module)
 
 # Build the database:
 # This will create the database file using SQLAlchemy
