@@ -9,6 +9,8 @@ from putbox import db
 from putbox.auth.AuthService import Auth
 from putbox.albums.models import Album
 from putbox.albums.schemas import album_schema, albums_schema
+from putbox.photos.models import Photo
+from putbox.photos.schemas import photo_schema, photos_schema
 
 # Import json
 import json
@@ -46,11 +48,11 @@ def add_album(current_user):
 @Auth.token_required
 def get_album(current_user, id):
     # TODO
-    # photos = Photo.query\
-    #         .filter(Photo.uploaded_by == current_user.user_id)\
-    #         .filter(Photo.album_id == id)
-    # result = photos_schema.dumps(photos)
-    # res = json.loads(result.data)
+    photos = Photo.query\
+            .filter(Photo.uploaded_by == current_user.user_id)\
+            .filter(Photo.album_id == id)
+    result = photos_schema.dumps(photos)
+    res = json.loads(result.data)
     return render_template("AlbumPage.html", album_id=id,photos=res, owner_album=current_user.username)
 
 

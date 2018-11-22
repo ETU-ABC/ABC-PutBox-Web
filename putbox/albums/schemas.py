@@ -1,5 +1,6 @@
 from flask_marshmallow import Schema
 from putbox import ma
+from putbox.photos.schemas import PhotoSchema
 
 
 class AlbumSchema(Schema):
