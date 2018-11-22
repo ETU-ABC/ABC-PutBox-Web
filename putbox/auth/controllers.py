@@ -16,11 +16,20 @@ import jwt
 # Import module models (i.e. User)
 from putbox.auth.models import Users
 
+# Import module models (i.e. Album)
+from putbox.albums.models import Album
+
 # Marshmallow schemas for users
 from putbox.auth.schemas import user_schema, users_schema
 
 # Import auth service
 from putbox.auth.AuthService import Auth
+
+# Import BackgroundScheduler
+from apscheduler.schedulers.background import BackgroundScheduler
+
+#Import request(for delete_photo)
+import requests
 
 # Define the blueprint: 'auth', set its url prefix: app.url/auth
 mod_auth = Blueprint('auth', __name__, url_prefix='/auth')
@@ -85,9 +94,15 @@ def user_settings(current_user):
     return render_template("Settings.html", time_to_delete=time_to_delete)
 
 
+def job():
+    db.session.delete(Album)
+    db.session.commit()
+
+
 @mod_user.route('/settings', methods=['POST'])
 @Auth.token_required
 def update_user_settings(current_user):
+    scheduler = BackgroundScheduler()
     time_input = 0
     if 'time_to_auto_del' in request.json:
         time_input = request.json['time_to_auto_del']
@@ -97,6 +112,12 @@ def update_user_settings(current_user):
     if time_input.isnumeric() and time_input > 0:
         current_user.auto_delete_time = time_input
         db.session.commit()
+        scheduler.add_job(job, trigger='interval', seconds=time_input)
     else:
         return "time_input should be positive value"
+
+
+
+
     return current_user
+
