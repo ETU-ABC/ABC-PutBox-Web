@@ -1,5 +1,5 @@
 # Import flask and template operators
-from flask import Flask, render_template
+from flask import Flask, render_template, redirect
 
 # Import SQLAlchemy
 from flask_sqlalchemy import SQLAlchemy
@@ -25,14 +25,12 @@ def not_found(error):
     # return render_template('404.html'), 404
     return render_template('Login.html')
 
-# Import a module / component using its blueprint handler variable (mod_auth)
-# from app.mod_auth.controllers import mod_auth as auth_module
-from putbox.auth.controllers import mod_auth as auth_module
-from putbox.photos.controllers import mod_photo as photo_module
-from putbox.albums.controllers import mod_album as album_module
-from putbox.auth.controllers import mod_user as user_module
+
+# Import views
+from putbox.views import *
 
 # Register blueprint(s)
+app.register_blueprint(root_module)
 app.register_blueprint(auth_module)
 app.register_blueprint(photo_module)
 app.register_blueprint(album_module)
