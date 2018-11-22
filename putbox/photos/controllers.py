@@ -21,7 +21,7 @@ mod_photo = Blueprint('photo', __name__, url_prefix='/photo')
 
 
 # endpoint to insert new photo
-@mod_photo.route("/", methods=["POST"])
+@mod_photo.route("/", methods=["POST"], strict_slashes=False)
 @Auth.token_required
 def add_photo(current_user):
     if 'photo' in request.files:
