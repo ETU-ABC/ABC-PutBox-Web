@@ -15,24 +15,15 @@ from putbox.auth.AuthService import Auth
 from putbox.auth.models import Users
 # Import module models (i.e. Photo)
 from putbox.photos.models import Photo
-# Import BackgroundScheduler
-from apscheduler.schedulers.background import BackgroundScheduler
+
+#Import thread for scheduling
 import threading
 import time
-scheduler = BackgroundScheduler({
-
-    'apscheduler.jobstores.default': {
-        'type': 'sqlalchemy',
-        'url': 'sqlite:///bil495-abc.sqlite'
-    },
-    'apscheduler.timezone': 'UTC',
-})
-
-
 
 # Configure uploads
 PHOTOS = UploadSet('photos', IMAGES)
 configure_uploads(app, PHOTOS)
+
 
 # Define the blueprint: 'auth', set its url prefix: app.url/auth
 mod_photo = Blueprint('photo', __name__, url_prefix='/photo')
@@ -66,9 +57,10 @@ def add_photo(current_user):
     user = Users.query.filter_by(user_id=current_user.user_id).first()
     photo_id= str(new_photo.photo_id)
     time_input = 60*(user.auto_delete_time)
+    #Set thread
+    thread = threading.Thread(target=delete_time_photo, args=[photo_id,time_input])
+    thread.start()
 
-    download_thread = threading.Thread(target=delete_time_photo, args=[photo_id,time_input])
-    download_thread.start()
     return redirect("/album/"+album_id, code=302)
 
 
