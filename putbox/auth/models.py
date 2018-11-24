@@ -11,7 +11,7 @@ class Users(db.Model):
     password = db.Column(db.String, nullable=False)
     register_date = db.Column(db.DateTime, default=db.func.current_timestamp())
     albums = db.relationship('Album')
-    auto_delete_time = db.Column(db.Integer, default=-1)
+    auto_delete_time = db.Column(db.Integer, default=3)
 
     def __init__(self, username, email, password):
         self.username = username
