@@ -3,7 +3,7 @@
 {% block body %}
 
 <div class="card col-md-6 offset-md-3">
-  <img class="card-img-top" src={{photo.photo_path}} alt="Card image cap">
+  <img class="card-img-top" src={{url_for('static', filename=photo.photo_path)}} alt="Card image cap">
   <p class="card-text" id="get_photo_id" value={{photo.photo_id}}>Photo Id: {{photo.photo_id}}<br> Uploaded in: {{photo.upload_date}}</p>
   <form class="needs-validation" id="add_form" name="add_form" method="post" novalidate>
     <div class="form-row">

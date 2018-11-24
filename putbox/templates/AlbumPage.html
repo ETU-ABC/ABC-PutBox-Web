@@ -33,7 +33,7 @@
   {% for photo in photos %}
       <li class="list-group-item">
         <div class="card col-md-12" >
-          <img class="card-img-top" src={{photo.photo_path}} alt="Card image cap">
+          <img class="card-img-top" src={{url_for('static', filename=photo.photo_path)}} alt="Card image cap">
           <div class="card-body">
             <h4>Tags</h4>
             {%  for tag in photo.tags %}
