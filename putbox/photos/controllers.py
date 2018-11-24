@@ -2,19 +2,23 @@
 from flask import Blueprint, request, render_template, \
                   jsonify, g, session, redirect, make_response
 
+#import datetime (i.e. current time)
+import datetime
 # Import flask-uploads
 from flask_uploads import UploadSet, configure_uploads, IMAGES
-
 # Import the database object from the main app module
 from putbox import db
-
+from putbox import app
 # Import module models
 from putbox.auth.AuthService import Auth
+# Import module models (i.e. User)
+from putbox.auth.models import Users
+# Import module models (i.e. Photo)
 from putbox.photos.models import Photo
-
 # Import BackgroundScheduler
 from apscheduler.schedulers.background import BackgroundScheduler
-
+import threading
+import time
 scheduler = BackgroundScheduler({
 
     'apscheduler.jobstores.default': {
@@ -28,15 +32,18 @@ scheduler = BackgroundScheduler({
 
 # Configure uploads
 PHOTOS = UploadSet('photos', IMAGES)
-# configure_uploads(app, PHOTOS)
+configure_uploads(app, PHOTOS)
 
 # Define the blueprint: 'auth', set its url prefix: app.url/auth
 mod_photo = Blueprint('photo', __name__, url_prefix='/photo')
 
-@Auth.token_required
-def delete_time_photo(current_user):
-    print("deleted")
 
+def delete_time_photo(id,time_input):
+    time.sleep(time_input)
+    photo = Photo.query.get(id)
+    db.session.delete(photo)
+    db.session.commit()
+    return None
 
 # endpoint to insert new photo
 @mod_photo.route("/", methods=["POST"], strict_slashes=False)
@@ -52,11 +59,16 @@ def add_photo(current_user):
     uploaded_by = current_user.user_id
     photo_path = "../../" + photo_path
     new_photo = Photo(photo_path, uploaded_by, album_id)
-
     db.session.add(new_photo)
     db.session.commit()
-    photo_id= new_photo.photo_id()
-    #scheduler.add_job(delete_time_photo, trigger='interval', args=[] seconds=time_input, id=new_photo.photo_id())
+
+    #Set_Photo_delete_time
+    user = Users.query.filter_by(user_id=current_user.user_id).first()
+    photo_id= str(new_photo.photo_id)
+    time_input = 60*(user.auto_delete_time)
+
+    download_thread = threading.Thread(target=delete_time_photo, args=[photo_id,time_input])
+    download_thread.start()
     return redirect("/album/"+album_id, code=302)
 
 
