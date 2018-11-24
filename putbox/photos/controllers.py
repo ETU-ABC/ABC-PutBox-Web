@@ -13,12 +13,15 @@ from putbox.auth.AuthService import Auth
 # Import module models (i.e. User)
 from putbox.auth.models import Users
 # Import module models (i.e. Photo)
-from putbox.photos.models import Photo
+from putbox.photos.models import Photo, SharedPhoto
 # Import module models (i.e. Like)
 from putbox.photos.models import Like
 #Import thread for scheduling
 import threading
 import time
+
+# App utils
+import putbox.utils
 
 
 # Define the blueprint: 'auth', set its url prefix: app.url/auth
@@ -131,4 +134,24 @@ def get_photo_like(current_user, id):
         return None
 
 
+@mod_photo.route('/<id>/share', methods=['GET'])
+@Auth.token_required
+def share_the_photo(current_user, id):
+    # get photo
+    photo = Photo.query.get(id)
+
+    if photo is None:
+        return "Photo not found with given id!"
+    elif photo.uploaded_by != current_user.user_id:
+        return "You can only share your own photos!"
+    else:
+        share_key = putbox.utils.random_hash()
+        shared_photo = SharedPhoto(id, share_key)
+        db.session.add(shared_photo)
+        db.session.commit()
+
+        # Build the share url
+        base_url = request.url_root  # http://localhost:5000/
+        share_url = base_url + 'photo/' + id + '?shared=' + share_key
+        return share_url
 
