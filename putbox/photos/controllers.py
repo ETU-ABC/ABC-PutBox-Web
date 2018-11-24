@@ -81,15 +81,27 @@ def get_photo():
 @mod_photo.route("/<id>", methods=["GET"])
 @Auth.token_required
 def photo_detail(current_user, id):
-
-    photo = Photo.query.get(id)
-    if photo is None:
-        return redirect("/", code=302)
-    elif photo.uploaded_by == current_user.user_id:
-        return render_template("PhotoPage.html", photo=photo)
+    share_key = request.args.get('shared')
+    # if this is not for viewing a shared photo
+    # show the user himself/herself photo
+    if share_key is None:
+        photo = Photo.query.get(id)
+        if photo is None:
+            return redirect("/", code=302)
+        elif photo.uploaded_by == current_user.user_id:
+            return render_template("PhotoPage.html", photo=photo)
+        else:
+            return redirect("/", code=302)
+            #return make_response(jsonify({"error": "You have not permission to view the photo!"}), 401)
     else:
-        return redirect("/", code=302)
-        #return make_response(jsonify({"error": "You have not permission to view the photo!"}), 401)
+        # show the shared photo
+        shared_photo_entry = SharedPhoto.query.filter_by(share_key=share_key). \
+            filter_by(photo_id=id).first()
+        if shared_photo_entry is None:
+            return "Wrong share key!"
+        else:
+            shared_photo = Photo.query.get(shared_photo_entry.photo_id)
+            return render_template("PhotoPage.html", photo=shared_photo)
 
 
 # endpoint to delete photo
