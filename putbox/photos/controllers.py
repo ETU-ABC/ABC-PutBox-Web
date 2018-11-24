@@ -119,6 +119,20 @@ def photo_like(current_user, id):
         like_obj = Like(id, current_user.user_id)
         db.session.add(like_obj)
         db.session.commit()
+        return None
+    else
+        return make_response(jsonify({"error":"You have not permission to view the photo!"}), 401)
 
 
-    return None
+
+@mod_photo.route("",methods=["GET"])
+@Auth.token_required
+def photo_like(current_user, id):
+    photo = Photo.query.get(id)
+
+    # TODO handle the code duplication for checking photo owner
+    if photo.uploaded_by == current_user.user_id:
+        liked_by = Like.query.filter_by(photo_id=id)
+        
+
+

@@ -16,7 +16,7 @@ class Photo(db.Model):
         self.album_id = album_id
 
 class Like(db.Model):
-    like_is = db.Column(db.Integer, primary_key=True)
+    like_id = db.Column(db.Integer, primary_key=True)
     photo_id = db.Column(db.Integer, db.ForeignKey('photo.photo_id'))
     liked_by = db.Column(db.String, db.ForeignKey('user.username'))
 
