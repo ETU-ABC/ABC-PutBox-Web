@@ -15,6 +15,7 @@ class Photo(db.Model):
         self.uploaded_by = uploaded_by
         self.album_id = album_id
 
+
 class Like(db.Model):
     like_id = db.Column(db.Integer, primary_key=True)
     photo_id = db.Column(db.Integer, db.ForeignKey('photo.photo_id'))
@@ -23,6 +24,17 @@ class Like(db.Model):
     def __init__(self, photo_id, liked_by):
         self.photo_id = photo_id
         self.liked_by = liked_by
+
+
+class SharedPhoto(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    photo_id = db.Column(db.Integer, db.ForeignKey('photo.photo_id'))
+    share_key = db.Column(db.Integer, nullable=False)
+    share_date = db.Column(db.DateTime, default=db.func.current_timestamp())
+
+    def __init__(self, photo_id, share_key):
+        self.photo_id = photo_id
+        self.share_key = share_key
 
 
 class Tag(db.Model):
