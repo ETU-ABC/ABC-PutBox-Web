@@ -10,6 +10,15 @@ class TagSchema(Schema):
 tag_schema = TagSchema()
 tags_schema = TagSchema(many=True)
 
+class LikeSchema(Schema):
+    class Meta:
+        fields = ('like_id', 'photo_id','liked_by')
+
+
+like_schema = LikeSchema()
+likes_schema = LikeSchema(many=True)
+
+
 
 class PhotoSchema(Schema):
     class Meta:
