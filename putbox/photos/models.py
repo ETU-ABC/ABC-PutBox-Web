@@ -18,7 +18,7 @@ class Photo(db.Model):
 class Like(db.Model):
     like_id = db.Column(db.Integer, primary_key=True)
     photo_id = db.Column(db.Integer, db.ForeignKey('photo.photo_id'))
-    liked_by = db.Column(db.String, db.ForeignKey('user.username'))
+    liked_by = db.Column(db.String)
 
     def __init__(self, photo_id, liked_by):
         self.photo_id = photo_id

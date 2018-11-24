@@ -12,7 +12,7 @@ tags_schema = TagSchema(many=True)
 
 class LikeSchema(Schema):
     class Meta:
-        fields = ('like_id', 'photo_id','liked_by')
+        fields = ('photo_id','liked_by')
 
 
 like_schema = LikeSchema()

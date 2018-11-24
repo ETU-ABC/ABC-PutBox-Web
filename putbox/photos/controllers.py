@@ -112,7 +112,7 @@ def photo_delete(current_user, id):
 
 @mod_photo.route("/like/<id>",methods=["POST"])
 @Auth.token_required
-def photo_like(current_user, id):
+def add_photo_like(current_user, id):
     photo = Photo.query.get(id)
 
     if photo.uploaded_by == current_user.user_id:
@@ -120,19 +120,20 @@ def photo_like(current_user, id):
         db.session.add(like_obj)
         db.session.commit()
         return None
-    else
+    else:
         return make_response(jsonify({"error":"You have not permission to view the photo!"}), 401)
 
 
 
-@mod_photo.route("",methods=["GET"])
+@mod_photo.route("/like/<id>",methods=["GET"])
 @Auth.token_required
-def photo_like(current_user, id):
+def get_photo_like(current_user, id):
     photo = Photo.query.get(id)
 
     # TODO handle the code duplication for checking photo owner
     if photo.uploaded_by == current_user.user_id:
         liked_by = Like.query.filter_by(photo_id=id)
-        
+        return None
+
 
 
