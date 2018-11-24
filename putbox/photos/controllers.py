@@ -15,7 +15,8 @@ from putbox.auth.AuthService import Auth
 from putbox.auth.models import Users
 # Import module models (i.e. Photo)
 from putbox.photos.models import Photo
-
+# Import module models (i.e. Like)
+from putbox.photos.models import Like
 #Import thread for scheduling
 import threading
 import time
@@ -107,3 +108,17 @@ def photo_delete(current_user, id):
         return None
     else:
         return make_response(jsonify({"error":"You have not permission to view the photo!"}), 401)
+
+
+@mod_photo.route("/like/<id>",methods=["POST"])
+@Auth.token_required
+def photo_like(current_user, id):
+    photo = Photo.query.get(id)
+
+    if photo.uploaded_by == current_user.user_id:
+        like_obj = Like(id, current_user.user_id)
+        db.session.add(like_obj)
+        db.session.commit()
+
+
+    return None
