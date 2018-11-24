@@ -7,6 +7,9 @@ from flask_sqlalchemy import SQLAlchemy
 # Import flask-marshmallow for serializing/deserializing
 from flask_marshmallow import Marshmallow
 
+# Import flask-uploads
+from flask_uploads import UploadSet, configure_uploads, IMAGES
+
 # Define the WSGI application object
 app = Flask(__name__)
 
@@ -18,6 +21,8 @@ app.config.from_object('config')
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
 
+photo_upload = UploadSet('photos', IMAGES)
+configure_uploads(app, photo_upload)
 
 # Sample HTTP error handling
 # @app.errorhandler(404)

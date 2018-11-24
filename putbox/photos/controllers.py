@@ -4,11 +4,10 @@ from flask import Blueprint, request, render_template, \
 
 #import datetime (i.e. current time)
 import datetime
-# Import flask-uploads
-from flask_uploads import UploadSet, configure_uploads, IMAGES
-# Import the database object from the main app module
-from putbox import db
-from putbox import app
+
+# Import the database object & photo_upload from the main app module
+from putbox import db, photo_upload
+
 # Import module models
 from putbox.auth.AuthService import Auth
 # Import module models (i.e. User)
@@ -20,10 +19,6 @@ from putbox.photos.models import Like
 #Import thread for scheduling
 import threading
 import time
-
-# Configure uploads
-PHOTOS = UploadSet('photos', IMAGES)
-configure_uploads(app, PHOTOS)
 
 
 # Define the blueprint: 'auth', set its url prefix: app.url/auth
@@ -42,8 +37,8 @@ def delete_time_photo(id,time_input):
 @Auth.token_required
 def add_photo(current_user):
     if 'photo' in request.files:
-        filename = PHOTOS.save(request.files['photo'])
-        photo_path = PHOTOS.path(filename)
+        filename = photo_upload.save(request.files['photo'])
+        photo_path = photo_upload.path(filename)
     else:
         return "No image found!", 415
     data = request.form.to_dict()

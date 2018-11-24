@@ -27,4 +27,4 @@ CSRF_SESSION_KEY = "secret"
 SECRET_KEY = 'etu-abc-putbox'
 
 # Path for uploaded photos
-UPLOADED_PHOTOS_DEST = 'static/photos'
+UPLOADED_PHOTOS_DEST = 'putbox/static/photos'
