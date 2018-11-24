@@ -11,7 +11,7 @@ from flask_marshmallow import Marshmallow
 from flask_uploads import UploadSet, configure_uploads, IMAGES
 
 # Define the WSGI application object
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='/static')
 
 # Configurations
 app.config.from_object('config')

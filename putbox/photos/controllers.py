@@ -41,13 +41,12 @@ def delete_time_photo(id,time_input):
 def add_photo(current_user):
     if 'photo' in request.files:
         filename = photo_upload.save(request.files['photo'])
-        photo_path = photo_upload.path(filename)
+        photo_path = 'photos/' + filename
     else:
         return "No image found!", 415
     data = request.form.to_dict()
     album_id = data['album_id']
     uploaded_by = current_user.user_id
-    photo_path = "../../" + photo_path
     new_photo = Photo(photo_path, uploaded_by, album_id)
     db.session.add(new_photo)
     db.session.commit()
