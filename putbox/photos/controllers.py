@@ -123,9 +123,9 @@ def photo_delete(current_user, id):
 @Auth.token_required
 def add_photo_like(current_user, id):
     photo = Photo.query.get(id)
-
+    user = Users.query.filter_by(user_id=id).first()
     if photo.uploaded_by == current_user.user_id:
-        like_obj = Like(id, current_user.user_id)
+        like_obj = Like(id, user.username)
         db.session.add(like_obj)
         db.session.commit()
         return None
@@ -142,6 +142,7 @@ def get_photo_like(current_user, id):
     # TODO handle the code duplication for checking photo owner
     if photo.uploaded_by == current_user.user_id:
         liked_by = Like.query.filter_by(photo_id=id)
+        #return
         return None
 
 
