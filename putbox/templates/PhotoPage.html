@@ -5,6 +5,16 @@
 <div class="card col-md-6 offset-md-3">
   <img class="card-img-top" src={{url_for('static', filename=photo.photo_path)}} alt="Card image cap">
   <p class="card-text" id="get_photo_id" value={{photo.photo_id}}>Photo Id: {{photo.photo_id}}<br> Uploaded in: {{photo.upload_date}}</p>
+   {% if current_user == photo_owner %}
+      <form class="needs-validation" id="like_form" name="like_form" method="post" novalidate>
+      <div class="form-row">
+        <input type="hidden" name="sender_user" value={{current_user}}>
+        <input type="hidden" name="photo_owner" value={{photo_owner}}>
+        <input type="hidden" name="photo_id" value={{photo.photo_id}}>
+        <button class="btn btn-primary" type="submit">Like photo</button>
+      </div>
+    </form>
+  {% endif %}
   <form class="needs-validation" id="add_form" name="add_form" method="post" novalidate>
     <div class="form-row">
       <div class="col-md-4 mb-3">
@@ -38,6 +48,24 @@
 
 <script>
 
+$(document).ready(function(){
+  $("#add_form").submit(function(e){
+    e.preventDefault();
+
+    $.ajax({
+        url: "/photo/like", // url where to submit the request //TODO
+        type : "POST", // type of action is POST || GET
+        dataType : 'json', // data type
+        contentType: 'application/json',
+        data : objectifyForm($("#like_form")), // post data || get data
+        success : function(result) {
+            location.reload();
+        }
+    })
+  });
+});  
+  
+  
 $(document).ready(function(){
   $("#add_form").submit(function(e){
     e.preventDefault();
