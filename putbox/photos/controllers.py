@@ -1,7 +1,8 @@
 # Import flask dependencies
 from flask import Blueprint, request, render_template, \
                   jsonify, g, session, redirect, make_response
-
+import requests
+import json
 # Import jwt (json web token)
 import jwt
 from flask import current_app as app
@@ -14,22 +15,18 @@ from putbox.photos.models import Like
 import threading
 import time
 import putbox.utils
-import datetime
 #import firebase
 import firebase_admin
 from firebase_admin import credentials
-from firebase_admin import messaging
+
+cred = credentials.Certificate("./putbox/photos/serviceAccountKey.json")
+firebase_admin.initialize_app(cred)
 
 # Define the blueprint: 'auth', set its url prefix: app.url/auth
 mod_photo = Blueprint('photo', __name__, url_prefix='/photo')
 
-#cred = credentials.Certificate("serviceAccountKey.json")
-#firebase_admin.initialize_app(cred)
-
-
 def delete_time_photo(id,time_input):
     time.sleep(time_input)
-    print("deneme")
     photo = Photo.query.get(id)
     db.session.delete(photo)
     db.session.commit()
@@ -55,7 +52,6 @@ def add_photo(current_user):
     user = Users.query.filter_by(user_id=current_user.user_id).first()
     photo_id= str(new_photo.photo_id)
     time_input = 60*(user.auto_delete_time)
-    print(time_input)
     #Set thread
     thread = threading.Thread(target=delete_time_photo, args=[photo_id,time_input])
     thread.start()
@@ -125,24 +121,51 @@ def photo_delete(current_user, id):
         return make_response(jsonify({"error":"You have not permission to view the photo!"}), 401)
 
 
-@mod_photo.route("/like/<id>",methods=["POST"])
+@mod_photo.route("/like",methods=["POST"])
 @Auth.token_required
-def add_photo_like(current_user, id):
-    token = jwt.encode({'userid': current_user.user_id}, app.config['SECRET_KEY'])
+def add_photo_like(current_user):
+    print("deneme")
+    data = request.json
+    id = data['photo_id']
+    print(id)
     photo = Photo.query.get(id)
-    user = Users.query.filter_by(user_id=id).first()
+
+    user = Users.query.filter_by(user_id=current_user.user_id).first()
+    photo_owner = Users.query.filter_by(username=photo.uploaded_by).first()
     if photo.uploaded_by == current_user.user_id:
         like_obj = Like(id, user.username)
         db.session.add(like_obj)
         db.session.commit()
-
+        url = "https://fcm.googleapis.com/v1/projects/etuabcputbox/messages:send HTTP/1.1"
+        data={
+            "message": {
+                "topic": photo_owner.user_token,
+                "notification": {
+                    "body": "Bu bildirime tıklayarak fotoğrafınıza erişebilirsiniz!",
+                    "title": "{} kişisi fotoğrafınızı beğendi".format(user.username),
+                    "data": {
+                        "url": "http://putbox-abc.herokuapp.com/photo/{}".format(id)
+                    }
+                }
+            }
+        }
+        headers = {'Authorization': 'Bearer ' + _get_access_token(),'Content-Type': 'application/json; UTF-8',}
+        res = requests.post(url, data=json.dumps(data), headers=headers)
+        print(res.text)
         message = '{"sender_user" : {}, "photo_owner":{}, "photo_id": {} }'.format(user.username, photo.uploaded_by, id)
         return message
 
     else:
         return make_response(jsonify({"error":"You have not permission to view the photo!"}), 401)
 
+def _get_access_token():
+  """Retrieve a valid access token that can be used to authorize requests.
 
+  :return: Access token.
+  """
+
+  access_token_info = cred.get_access_token()
+  return access_token_info.access_token
 
 @mod_photo.route("/like/<id>",methods=["GET"])
 @Auth.token_required
