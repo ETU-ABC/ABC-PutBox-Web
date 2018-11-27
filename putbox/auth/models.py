@@ -12,15 +12,16 @@ class Users(db.Model):
     register_date = db.Column(db.DateTime, default=db.func.current_timestamp())
     albums = db.relationship('Album')
     auto_delete_time = db.Column(db.Integer, default=3)
+    user_token =  db.Column(db.String, unique=True)
 
-    def __init__(self, username, email, password):
+    def __init__(self, username, email, password, user_token):
         self.username = username
         self.email = email
         self.password = password
-
+        self.user_token = user_token
 
 class UserSchema(Schema):
 
     class Meta:
         # Fields to expose
-        fields = ('user_id', 'username', 'email', 'register_date')
+        fields = ('user_id', 'username', 'email', 'register_date', 'user_token')
