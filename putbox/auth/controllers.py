@@ -24,7 +24,7 @@ from putbox.auth.schemas import user_schema, users_schema
 
 # Import auth service
 from putbox.auth.AuthService import Auth
-
+import datetime
 
 
 # Define the blueprint: 'auth', set its url prefix: app.url/auth
@@ -49,11 +49,12 @@ def login():
     password = data['password']
 
     user = Users.query.filter_by(username=username).first()
-
     if not user:
         return make_response('User not found', 401)
     if check_password_hash(user.password, password):
         token = jwt.encode({'userid': user.user_id}, app.config['SECRET_KEY'])
+        user.user_token = token
+        print(user.user_token)
         out = jsonify(success=True)
         out.set_cookie('token', token)
         return out

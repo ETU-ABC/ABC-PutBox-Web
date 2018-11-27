@@ -2,34 +2,34 @@
 from flask import Blueprint, request, render_template, \
                   jsonify, g, session, redirect, make_response
 
-#import datetime (i.e. current time)
-import datetime
-
+# Import jwt (json web token)
+import jwt
+from flask import current_app as app
 # Import the database object & photo_upload from the main app module
 from putbox import db, photo_upload
-
-# Import module models
 from putbox.auth.AuthService import Auth
-# Import module models (i.e. User)
 from putbox.auth.models import Users
-# Import module models (i.e. Photo)
 from putbox.photos.models import Photo, SharedPhoto
-# Import module models (i.e. Like)
 from putbox.photos.models import Like
-#Import thread for scheduling
 import threading
 import time
-
-# App utils
 import putbox.utils
-
+import datetime
+#import firebase
+import firebase_admin
+from firebase_admin import credentials
+from firebase_admin import messaging
 
 # Define the blueprint: 'auth', set its url prefix: app.url/auth
 mod_photo = Blueprint('photo', __name__, url_prefix='/photo')
 
+#cred = credentials.Certificate("serviceAccountKey.json")
+#firebase_admin.initialize_app(cred)
+
 
 def delete_time_photo(id,time_input):
     time.sleep(time_input)
+    print("deneme")
     photo = Photo.query.get(id)
     db.session.delete(photo)
     db.session.commit()
@@ -55,6 +55,7 @@ def add_photo(current_user):
     user = Users.query.filter_by(user_id=current_user.user_id).first()
     photo_id= str(new_photo.photo_id)
     time_input = 60*(user.auto_delete_time)
+    print(time_input)
     #Set thread
     thread = threading.Thread(target=delete_time_photo, args=[photo_id,time_input])
     thread.start()
@@ -85,6 +86,8 @@ def photo_detail(current_user, id):
     # show the user himself/herself photo
     if share_key is None:
         photo = Photo.query.get(id)
+        uploaded_by = photo.uploaded_by
+
         if photo is None:
             return redirect("/", code=302)
         elif photo.uploaded_by == current_user.user_id:
@@ -100,7 +103,10 @@ def photo_detail(current_user, id):
             return "Wrong share key!"
         else:
             shared_photo = Photo.query.get(shared_photo_entry.photo_id)
-            return render_template("PhotoPage.html", photo=shared_photo)
+            user = Users.query.filter_by(user_id=current_user.user_id).first()
+            photo = Photo.query.get(id)
+            uploaded_by = photo.uploaded_by
+            return render_template("PhotoPage.html", photo=shared_photo,current_user=user.username,photo_owner=uploaded_by)
 
 
 # endpoint to delete photo
@@ -122,13 +128,17 @@ def photo_delete(current_user, id):
 @mod_photo.route("/like/<id>",methods=["POST"])
 @Auth.token_required
 def add_photo_like(current_user, id):
+    token = jwt.encode({'userid': current_user.user_id}, app.config['SECRET_KEY'])
     photo = Photo.query.get(id)
     user = Users.query.filter_by(user_id=id).first()
     if photo.uploaded_by == current_user.user_id:
         like_obj = Like(id, user.username)
         db.session.add(like_obj)
         db.session.commit()
-        return None
+
+        message = '{"sender_user" : {}, "photo_owner":{}, "photo_id": {} }'.format(user.username, photo.uploaded_by, id)
+        return message
+
     else:
         return make_response(jsonify({"error":"You have not permission to view the photo!"}), 401)
 
@@ -161,7 +171,6 @@ def share_the_photo(current_user, id):
         shared_photo = SharedPhoto(id, share_key)
         db.session.add(shared_photo)
         db.session.commit()
-
         # Build the share url
         base_url = request.url_root  # http://localhost:5000/
         share_url = base_url + 'photo/' + id + '?shared=' + share_key
