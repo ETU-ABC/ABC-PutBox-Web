@@ -19,6 +19,9 @@ app = Flask(__name__, static_url_path='/static')
 # Configurations
 app.config.from_object('config')
 if app.config['ENV'] == 'production':
+    # In production environment, remove the sqlite connection
+    # Let the app use heroku postgres database
+    del app.config['SQLALCHEMY_DATABASE_URI']
     heroku = Heroku(app)
 
 # Define the database object which is imported
