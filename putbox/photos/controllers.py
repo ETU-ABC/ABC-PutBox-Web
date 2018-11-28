@@ -5,7 +5,7 @@ import json
 from putbox import db, photo_upload
 from putbox.auth.AuthService import Auth
 from putbox.auth.models import Users
-from putbox.photos.models import Photo, SharedPhoto
+from putbox.photos.models import Photo, SharedPhoto, Tag
 from putbox.photos.models import Like
 import threading
 import time
