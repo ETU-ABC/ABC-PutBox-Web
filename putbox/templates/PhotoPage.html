@@ -13,6 +13,7 @@
         <button class="btn btn-primary" type="submit">Like photo</button>
         {% if current_user == photo_owner %}
             <a class="btn btn-primary" href="./{{photo.photo_id}}/share">Share Photo</a>
+            <button type="button" class="btn btn-lg btn-secondary" data-toggle="popover" title="Share URL" rel="popover">Share Photo</button>
         {% endif %}
       </div>
     </form>
@@ -48,14 +49,44 @@
 </div>
 
 <script>
+  var popOverSettings = {
+      placement: 'bottom',
+      container: 'body',
+      html: true,
+      selector: '[rel="popover"]',
+      content: function () {
+        var response = $.ajax({ type: "GET",
+                          url: "./{{photo.photo_id}}/share", // url where to submit the request //TODO
+                          async: false
+                        }).responseText;
+        return "<div id='popover-content'><textarea>"+response+"</textarea></div>";
+
+      }
+
+  }
+  function copyLink(response) {
+    /* Get the text field */
+    var copyText = document.getElementById("myInput");
+
+    /* Select the text field */
+    copyText.select();
+
+    /* Copy the text inside the text field */
+    document.execCommand("copy");
+
+    /* Alert the copied text */
+    alert("Copied the text: " + copyText.value);
+  }
+
+$('body').popover(popOverSettings);
 
 $(document).ready(function(){
   $("#like_form").submit(function(e){
     e.preventDefault();
-    
+
     {#var value =  document.getElementById("get_photo_id").getAttribute("value");#}
     var urlLink = '../photo/like/' + {{ photo.photo_id }};
-    
+
     $.ajax({
         url: urlLink, // url where to submit the request //TODO
         type : "POST", // type of action is POST || GET
