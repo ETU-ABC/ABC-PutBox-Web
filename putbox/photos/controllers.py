@@ -121,32 +121,32 @@ def add_photo_like(current_user,id):
 
     photo = Photo.query.get(id)
     photo_owner = Users.query.filter_by(user_id=photo.uploaded_by).first()
-    if photo.uploaded_by == current_user.user_id:
-        like_obj = Like(id, current_user.username)
-        db.session.add(like_obj)
-        db.session.commit()
-        url = "https://fcm.googleapis.com/fcm/send"
-        topic = photo_owner.user_token
+    # if photo.uploaded_by == current_user.user_id:
+    like_obj = Like(id, current_user.username)
+    db.session.add(like_obj)
+    db.session.commit()
+    url = "https://fcm.googleapis.com/fcm/send"
+    topic = photo_owner.user_token
 
-        # See documentation on defining a message payload.
-        message = messaging.Message(
-            data={
-                "body": "Bu bildirime tıklayarak fotoğrafınıza erişebilirsiniz!",
-                "title": "{} kişisi fotoğrafınızı beğendi".format(current_user.username),
-                "url": "http://putbox-abc.herokuapp.com/photo/{}".format(id)
-            },
-            topic=topic,
-        )
+    # See documentation on defining a message payload.
+    message = messaging.Message(
+        data={
+            "body": "Bu bildirime tıklayarak fotoğrafınıza erişebilirsiniz!",
+            "title": "{} kişisi fotoğrafınızı beğendi".format(current_user.username),
+            "url": "http://putbox-abc.herokuapp.com/photo/{}".format(id)
+        },
+        topic=topic,
+    )
 
 
-        response = messaging.send(message)
+    response = messaging.send(message)
 
-        print('Successfully sent message:', response)
-        message = {"sender_user" : current_user.username, "photo_owner":photo_owner.username, "photo_id": id }
-        return make_response(json.dumps(message), 200)
+    print('Successfully sent message:', response)
+    message = {"sender_user" : current_user.username, "photo_owner":photo_owner.username, "photo_id": id }
+    return make_response(json.dumps(message), 200)
 
-    else:
-        return make_response(jsonify({"error":"You have not permission to view the photo!"}), 401)
+    # else:
+    #     return make_response(jsonify({"error":"You have not permission to view the photo!"}), 401)
 
 def _get_access_token():
   """Retrieve a valid access token that can be used to authorize requests.
@@ -180,6 +180,8 @@ def share_the_photo(current_user, id):
     elif photo.uploaded_by != current_user.user_id:
         return "You can only share your own photos!"
     else:
+        # get share_key if it exists currently
+        cur_share_key = SharedPhoto.query.get()
         share_key = putbox.utils.random_hash()
         shared_photo = SharedPhoto(id, share_key)
         db.session.add(shared_photo)
