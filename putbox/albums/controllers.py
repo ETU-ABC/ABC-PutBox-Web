@@ -47,13 +47,10 @@ def add_album(current_user):
 @mod_album.route("/<id>", methods=['GET'])
 @Auth.token_required
 def get_album(current_user, id):
-    # TODO
     photos = Photo.query\
             .filter(Photo.uploaded_by == current_user.user_id)\
             .filter(Photo.album_id == id)
-    result = photos_schema.dumps(photos)
-    res = json.loads(result.data)
-    return render_template("AlbumPage.html", album_id=id,photos=res, owner_album=current_user.username)
+    return render_template("AlbumPage.html", album_id=id,photos=photos, owner_album=current_user.username)
 
 
 # endpoint to update album
