@@ -181,7 +181,7 @@ def share_the_photo(current_user, id):
         return "You can only share your own photos!"
     else:
         # get share_key if it exists currently
-        cur_share_key = SharedPhoto.query.get()
+        # cur_share_key = SharedPhoto.query.get()
         share_key = putbox.utils.random_hash()
         shared_photo = SharedPhoto(id, share_key)
         db.session.add(shared_photo)
