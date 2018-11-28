@@ -197,5 +197,4 @@ def share_the_photo(current_user, id):
         # Build the share url
         base_url = request.url_root  # http://localhost:5000/
         share_url = base_url + 'photo/' + id + '?shared=' + share_key
-        return share_url
-
+        return redirect(share_url)

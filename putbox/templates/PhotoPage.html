@@ -12,6 +12,8 @@
         <input type="hidden" name="photo_owner" value={{photo_owner}}>
         <input type="hidden" name="photo_id" value={{photo.photo_id}}>
         <button class="btn btn-primary" type="submit">Like photo</button>
+        <a class="btn btn-primary" href="./share">Share Photo</a>
+        
       </div>
     </form>
   {% endif %}
@@ -63,9 +65,9 @@ $(document).ready(function(){
         }
     })
   });
-});  
-  
-  
+});
+
+
 $(document).ready(function(){
   $("#add_form").submit(function(e){
     e.preventDefault();
