@@ -174,3 +174,41 @@ def share_the_photo(current_user, id):
         base_url = request.url_root  # http://localhost:5000/
         share_url = base_url + 'photo/' + id + '?shared=' + share_key
         return redirect(share_url)
+
+
+# TAG - related endpoints
+# endpoint to add a tag to the photo
+@mod_photo.route("/<id>/tag", methods=["POST"])
+@Auth.token_required
+def tag_add(current_user, id):
+    new_tag = request.json['tag']
+    photo = Photo.query.get(id)
+    if photo.uploaded_by == current_user.user_id:
+        # check if tag already exists for that photo
+        for tag in photo.tags:
+            if tag.tag_desc == new_tag:
+                return make_response(jsonify({"error": "Photo already has the tag!"}), 400)
+        tag_obj = Tag(id, new_tag)
+        db.session.add(tag_obj)
+        db.session.commit()
+        return make_response(jsonify({"Message:": "Tag '{}' added.".format(new_tag)}))
+    else:
+        return make_response(jsonify({"error":"You have not permission to view the photo!"}), 401)
+
+
+# endpoint to delete a tag from the photo
+@mod_photo.route("<id>/tag", methods=["DELETE"])
+@Auth.token_required
+def tag_delete(current_user, id):
+    tag_to_delete = request.json['tag']
+    photo = Photo.query.get(id)
+    if photo.uploaded_by == current_user.user_id:
+        # check if tag exists for that photo
+        for tag in photo.tags:
+            if tag.tag_desc == tag_to_delete:
+                db.session.delete(tag)
+                db.session.commit()
+                return make_response(jsonify({"Message:": "Tag '{}' deleted.".format(tag_to_delete)}))
+        return make_response(jsonify({"error": "Photo does not have the tag!"}), 400)
+    else:
+        return make_response(jsonify({"error":"You have not permission to view the photo!"}), 401)
