@@ -52,9 +52,12 @@
 $(document).ready(function(){
   $("#add_form").submit(function(e){
     e.preventDefault();
-
+    
+    var value =  document.getElementById("get_photo_id").getAttribute("value");
+    var urlLink = '../photo/like/' + value;
+    
     $.ajax({
-        url: "/photo/like", // url where to submit the request //TODO
+        url: urlLink, // url where to submit the request //TODO
         type : "POST", // type of action is POST || GET
         dataType : 'json', // data type
         contentType: 'application/json',
