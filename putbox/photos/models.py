@@ -29,7 +29,7 @@ class Like(db.Model):
 class SharedPhoto(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     photo_id = db.Column(db.Integer, db.ForeignKey('photo.photo_id'))
-    share_key = db.Column(db.Integer, nullable=False)
+    share_key = db.Column(db.String, nullable=False)
     share_date = db.Column(db.DateTime, default=db.func.current_timestamp())
 
     def __init__(self, photo_id, share_key):
