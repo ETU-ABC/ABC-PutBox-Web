@@ -22,6 +22,9 @@
     </div>
   </form>
 
+   <button class="btn btn-light" type="submit" onClick="deleteAlbum()" id="delete_the_album_button" value={{album_id}}>Delete the Album</button>
+
+
   <br>
   <hr style="color:#639fff">
   <br>
@@ -42,7 +45,6 @@
             <p class="card-text">Date: {{photo.upload_date}}</p>
             <a href="../photo/{{photo.photo_id}}" id="go_to_photo_button" value={{photo.photo_id}} class="btn btn-primary">Go to Photo</a>
             <br><hr><br>
-            <!--button class="btn btn-light" type="submit" onClick="deletePhoto()" id="delete_the_photo_button" value={{photo.photo_id}}>Delete the Photo</button-->
           </div>
         </div>
       </li>
@@ -78,9 +80,10 @@
 <script>
 
 
-function deletePhoto(){
-    var id = document.getElementById("delete_the_photo_button").getAttribute("value");
-    var varLink = '../photo/' + id;
+function deleteAlbum(){
+
+
+    var varLink = '../album/' + {{album_id}};
 
     $.ajax({
         url: varLink, // url where to submit the request
@@ -88,11 +91,11 @@ function deletePhoto(){
         dataType : 'json', // data type
         contentType: 'application/json',
         data : objectifyForm($("#form")), // post data || get data
-        success : function(result) {
-          location.reload();
-        }
+
     })
+    window.location.assign("/");
 }
+
 
 $('#file-upload').change(function() {
   var i = $(this).prev('label').clone();

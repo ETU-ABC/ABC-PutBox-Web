@@ -69,7 +69,8 @@ def album_update(id):
 # endpoint to delete album
 @mod_album.route("/<id>", methods=["DELETE"])
 @Auth.token_required
-def album_delete(id):
+def album_delete(current_user,id):
+
     album = Album.query.get(id)
     db.session.delete(album)
     db.session.commit()

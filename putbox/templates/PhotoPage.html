@@ -12,11 +12,11 @@
         <input type="hidden" name="photo_id" value={{photo.photo_id}}>
         <button class="btn btn-primary" type="submit">Like photo</button>
         {% if current_user == photo_owner %}
-            <a class="btn btn-primary" href="./{{photo.photo_id}}/share">Share Photo</a>
-            <button type="button" class="btn btn-lg btn-secondary" data-toggle="popover" title="Share URL" rel="popover">Share Photo</button>
+            <button type="button" class="btn btn-lg btn-primary" data-toggle="popover" title="Share URL" rel="popover">Share Photo</button>
         {% endif %}
       </div>
     </form>
+    <button class="btn btn-light" type="submit" onClick="deletePhoto()" id="delete_the_photo_button" value={{photo.photo_id}}>Delete the Photo</button>
   <form class="needs-validation" id="add_form" name="add_form" method="post" novalidate>
     <div class="form-row">
       <div class="col-md-4 mb-3">
@@ -49,6 +49,24 @@
 </div>
 
 <script>
+
+
+function deletePhoto(){
+    var id = document.getElementById("delete_the_photo_button").getAttribute("value");
+    var varLink = '../photo/' + id;
+
+    $.ajax({
+        url: varLink, // url where to submit the request
+        type : "DELETE", // type of action POST || GET
+        dataType : 'json', // data type
+        contentType: 'application/json',
+        data : objectifyForm($("#form")), // post data || get data
+
+    })
+    window.location.assign("/");
+}
+
+
   var popOverSettings = {
       placement: 'bottom',
       container: 'body',
