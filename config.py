@@ -3,7 +3,13 @@ DEBUG = True
 
 # Define the application directory
 import os
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))  
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+
+# Firebase config
+import firebase_admin
+from firebase_admin import credentials
+cred = credentials.Certificate("./putbox/photos/serviceAccountKey.json")
+firebase_admin.initialize_app(cred)
 
 # Define the database - we are working with
 # SQLite for this example
