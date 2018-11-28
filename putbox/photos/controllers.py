@@ -119,6 +119,11 @@ def add_photo_like(current_user,id):
 
     photo = Photo.query.get(id)
     photo_owner = Users.query.filter_by(user_id=photo.uploaded_by).first()
+    l = Like.query.filter_by(liked_by=current_user.username).first()
+    if l is not None:
+        message = {"message:":"This user alread liked"}
+        print("Already liked")
+        return make_response(json.dumps(message), 200)
 
     like_obj = Like(id, current_user.username)
     db.session.add(like_obj)
