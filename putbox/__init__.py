@@ -10,11 +10,16 @@ from flask_marshmallow import Marshmallow
 # Import flask-uploads
 from flask_uploads import UploadSet, configure_uploads, IMAGES
 
+# Import heroku
+from flask_heroku import Heroku
+
 # Define the WSGI application object
 app = Flask(__name__, static_url_path='/static')
 
 # Configurations
 app.config.from_object('config')
+if app.config['ENV'] == 'production':
+    heroku = Heroku(app)
 
 # Define the database object which is imported
 # by modules and controllers
