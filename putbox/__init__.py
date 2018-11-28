@@ -48,6 +48,7 @@ app.register_blueprint(auth_module)
 app.register_blueprint(photo_module)
 app.register_blueprint(album_module)
 app.register_blueprint(user_module)
+app.register_blueprint(tag_module)
 
 # Build the database:
 # This will create the database file using SQLAlchemy

@@ -5,3 +5,4 @@ from putbox.photos.controllers import mod_photo as photo_module
 from putbox.albums.controllers import mod_album as album_module
 from putbox.auth.controllers import mod_user as user_module
 from .root import mod_root as root_module
+from .tag import mod_tag as tag_module
