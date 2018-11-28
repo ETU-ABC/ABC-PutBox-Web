@@ -1,24 +1,20 @@
 # Import flask dependencies
 from flask import Blueprint, request, render_template, \
                   jsonify, g, session, redirect, make_response
-import requests
 import json
-# Import jwt (json web token)
-import jwt
-from flask import current_app as app
-# Import the database object & photo_upload from the main app module
 from putbox import db, photo_upload
 from putbox.auth.AuthService import Auth
 from putbox.auth.models import Users
-from putbox.photos.models import Photo, SharedPhoto, Tag
+from putbox.photos.models import Photo, SharedPhoto
 from putbox.photos.models import Like
 import threading
 import time
 import putbox.utils
+
 #import firebase
 import firebase_admin
 from firebase_admin import credentials
-
+from firebase_admin import messaging
 cred = credentials.Certificate("./putbox/photos/serviceAccountKey.json")
 firebase_admin.initialize_app(cred)
 
@@ -82,8 +78,6 @@ def photo_detail(current_user, id):
     # show the user himself/herself photo
     if share_key is None:
         photo = Photo.query.get(id)
-        uploaded_by = photo.uploaded_by
-
         if photo is None:
             return redirect("/", code=302)
         elif photo.uploaded_by == current_user.user_id:
@@ -121,39 +115,35 @@ def photo_delete(current_user, id):
         return make_response(jsonify({"error":"You have not permission to view the photo!"}), 401)
 
 
-@mod_photo.route("/like",methods=["POST"])
+@mod_photo.route("/like/<id>",methods=["POST"])
 @Auth.token_required
-def add_photo_like(current_user):
-    print("deneme")
-    data = request.json
-    id = data['photo_id']
-    print(id)
-    photo = Photo.query.get(id)
+def add_photo_like(current_user,id):
 
-    user = Users.query.filter_by(user_id=current_user.user_id).first()
-    photo_owner = Users.query.filter_by(username=photo.uploaded_by).first()
+    photo = Photo.query.get(id)
+    photo_owner = Users.query.filter_by(user_id=photo.uploaded_by).first()
     if photo.uploaded_by == current_user.user_id:
-        like_obj = Like(id, user.username)
+        like_obj = Like(id, current_user.username)
         db.session.add(like_obj)
         db.session.commit()
-        url = "https://fcm.googleapis.com/v1/projects/etuabcputbox/messages:send HTTP/1.1"
-        data={
-            "message": {
-                "topic": photo_owner.user_token,
-                "notification": {
-                    "body": "Bu bildirime tıklayarak fotoğrafınıza erişebilirsiniz!",
-                    "title": "{} kişisi fotoğrafınızı beğendi".format(user.username),
-                    "data": {
-                        "url": "http://putbox-abc.herokuapp.com/photo/{}".format(id)
-                    }
-                }
-            }
-        }
-        headers = {'Authorization': 'Bearer ' + _get_access_token(),'Content-Type': 'application/json; UTF-8',}
-        res = requests.post(url, data=json.dumps(data), headers=headers)
-        print(res.text)
-        message = '{"sender_user" : {}, "photo_owner":{}, "photo_id": {} }'.format(user.username, photo.uploaded_by, id)
-        return message
+        url = "https://fcm.googleapis.com/fcm/send"
+        topic = photo_owner.user_token
+
+        # See documentation on defining a message payload.
+        message = messaging.Message(
+            data={
+                "body": "Bu bildirime tıklayarak fotoğrafınıza erişebilirsiniz!",
+                "title": "{} kişisi fotoğrafınızı beğendi".format(current_user.username),
+                "url": "http://putbox-abc.herokuapp.com/photo/{}".format(id)
+            },
+            topic=topic,
+        )
+
+
+        response = messaging.send(message)
+
+        print('Successfully sent message:', response)
+        message = {"sender_user" : current_user.username, "photo_owner":photo_owner.username, "photo_id": id }
+        return make_response(json.dumps(message), 200)
 
     else:
         return make_response(jsonify({"error":"You have not permission to view the photo!"}), 401)
@@ -198,49 +188,3 @@ def share_the_photo(current_user, id):
         base_url = request.url_root  # http://localhost:5000/
         share_url = base_url + 'photo/' + id + '?shared=' + share_key
         return redirect(share_url)
-
-
-# TAG - related endpoints
-
-# endpoint to add a tag to the photo
-@mod_photo.route("/<id>/tag", methods=["POST"])
-@Auth.token_required
-def tag_add(current_user, id):
-    new_tag = request.json['tag']
-
-    photo = Photo.query.get(id)
-    if photo.uploaded_by == current_user.user_id:
-        # check if tag already exists for that photo
-        for tag in photo.tags:
-            if tag.tag_desc == new_tag:
-                return make_response(jsonify({"error": "Photo already has the tag!"}), 400)
-
-        tag_obj = Tag(id, new_tag)
-        db.session.add(tag_obj)
-        db.session.commit()
-
-        return make_response(jsonify({"Message:": "Tag '{}' added.".format(new_tag)}))
-    else:
-        return make_response(jsonify({"error":"You have not permission to view the photo!"}), 401)
-
-
-# endpoint to delete a tag from the photo
-@mod_photo.route("<id>/tag", methods=["DELETE"])
-@Auth.token_required
-def tag_delete(current_user, id):
-    tag_to_delete = request.json['tag']
-
-    photo = Photo.query.get(id)
-
-    if photo.uploaded_by == current_user.user_id:
-        # check if tag exists for that photo
-        for tag in photo.tags:
-            if tag.tag_desc == tag_to_delete:
-                db.session.delete(tag)
-                db.session.commit()
-                return make_response(jsonify({"Message:": "Tag '{}' deleted.".format(tag_to_delete)}))
-
-        return make_response(jsonify({"error": "Photo does not have the tag!"}), 400)
-
-    else:
-        return make_response(jsonify({"error":"You have not permission to view the photo!"}), 401)
