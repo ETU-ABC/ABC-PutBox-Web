@@ -103,7 +103,7 @@ $(document).ready(function(){
     e.preventDefault();
 
     {#var value =  document.getElementById("get_photo_id").getAttribute("value");#}
-    var urlLink = '../photo/like/' + {{ photo.photo_id }};
+    var urlLink = '../photo/' + {{ photo.photo_id }} + '/like';
 
     $.ajax({
         url: urlLink, // url where to submit the request //TODO

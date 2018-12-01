@@ -10,6 +10,7 @@ from putbox.photos.models import Like
 import threading
 import time
 import putbox.utils
+import requests
 
 # firebase messagings
 from firebase_admin import messaging
@@ -113,42 +114,46 @@ def photo_delete(current_user, id):
         return make_response(jsonify({"error":"You have not permission to view the photo!"}), 401)
 
 
-@mod_photo.route("/like/<id>",methods=["POST"])
+@mod_photo.route("/<id>/like", methods=["POST"])
 @Auth.token_required
-def add_photo_like(current_user,id):
+def add_photo_like(current_user, id):
 
     photo = Photo.query.get(id)
     photo_owner = Users.query.filter_by(user_id=photo.uploaded_by).first()
     l = Like.query.filter_by(liked_by=current_user.username).first()
     if l is not None:
-        message = {"message:":"This user alread liked"}
-        print("Already liked")
+        message = {"message:": "This user already liked the photo."}
         return make_response(json.dumps(message), 200)
 
     like_obj = Like(id, current_user.username)
     db.session.add(like_obj)
     db.session.commit()
-    url = "https://fcm.googleapis.com/fcm/send"
-    topic = photo_owner.user_token
 
-    # See documentation on defining a message payload.
-    message = messaging.Message(
-        data={
-            "body": "Bu bildirime tıklayarak fotoğrafınıza erişebilirsiniz!",
-            "title": "{} kişisi fotoğrafınızı beğendi".format(current_user.username),
-            "url": "http://putbox-abc.herokuapp.com/photo/{}".format(id)
-        },
-        topic=topic,
-    )
+    url = "https://fcm.googleapis.com/v1/projects/etuabcputbox/messages:send"
+    data = {
+        "message": {
+            "topic": photo_owner.user_token,
+            "notification": {
+                "body": "Click the notification to view the photo!",
+                "title": "{} liked your photo".format(current_user.username),
+                # TODO update this to open the photo directly
+                # "data": {
+                #     "url": "http://putbox-abc.herokuapp.com/photo/{}".format(id)
+                # }
+            }
+        }
+    }
 
-    response = messaging.send(message)
+    headers = {'Authorization': 'Bearer ' + putbox.utils._get_access_token(), 'Content-Type': 'application/json; UTF-8'}
+    res = requests.post(url, data=json.dumps(data), headers=headers)
 
-    print('Successfully sent message:', response)
-    message = {"sender_user" : current_user.username, "photo_owner":photo_owner.username, "photo_id": id }
-    return make_response(json.dumps(message), 200)
+    if res.status_code == requests.codes.ok:
+        return "Photo liked & sent notification!"
+    else:
+        return "Error when sending notification!"
 
 
-@mod_photo.route("/like/<id>",methods=["GET"])
+@mod_photo.route("/<id>/like", methods=["GET"])
 @Auth.token_required
 def get_photo_like(current_user, id):
     photo = Photo.query.get(id)
