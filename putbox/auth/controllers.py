@@ -54,7 +54,7 @@ def login():
     if check_password_hash(user.password, password):
         token = jwt.encode({'userid': user.user_id}, app.config['SECRET_KEY'])
         user.user_token = token
-        print(user.user_token)
+        db.session.commit()
         out = jsonify(success=True)
         out.set_cookie('token', token)
         return out
